@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,15 @@ from fastapi import Header, HTTPException
 from api.models import FreshnessStatus, SyncInfo
 
 logger = structlog.get_logger()
+
+# --- In-memory cache for R2 gold data ---
+
+_gold_cache: dict[str, tuple[float, bytes]] = {}
+_CACHE_TTL_SECONDS = 300  # 5 minutes
+
+
+def _is_r2_mode() -> bool:
+    return os.environ.get("STORAGE_BACKEND", "local") == "r2"
 
 
 def get_gold_dir() -> Path:
@@ -70,16 +81,42 @@ def get_sync_health(sync_info: SyncInfo | None) -> FreshnessStatus:
     return FreshnessStatus.CRITICAL
 
 
-def query_gold_series(series: str, after: str | None = None) -> list[dict[str, Any]]:
-    """Query gold Parquet for a given series, optionally filtered by date."""
-    gold_dir = get_gold_dir()
-    parquet_path = gold_dir / f"{series}.parquet"
+async def _read_gold_bytes(series: str) -> bytes | None:
+    """Read gold parquet bytes — from R2 (cached) or local disk."""
+    if _is_r2_mode():
+        now = time.monotonic()
 
+        # Check cache
+        if series in _gold_cache:
+            cached_at, data = _gold_cache[series]
+            if now - cached_at < _CACHE_TTL_SECONDS:
+                return data
+
+        try:
+            from storage.r2 import R2StorageBackend
+            r2 = R2StorageBackend()
+            key = f"gold/{series}.parquet"
+            if not await r2.exists(key):
+                return None
+            data = await r2.read(key)
+            _gold_cache[series] = (now, data)
+            logger.debug("gold_r2_read", series=series, size=len(data))
+            return data
+        except Exception as exc:
+            logger.warning("gold_r2_read_error", series=series, error=str(exc))
+            return None
+
+    # Local mode
+    parquet_path = get_gold_dir() / f"{series}.parquet"
     if not parquet_path.exists():
-        return []
+        return None
+    return parquet_path.read_bytes()
 
+
+def _query_parquet_bytes(parquet_bytes: bytes, after: str | None) -> list[dict[str, Any]]:
+    """Query in-memory parquet bytes with DuckDB."""
+    table = pq.read_table(io.BytesIO(parquet_bytes))
     conn = duckdb.connect()
-    table = pq.read_table(str(parquet_path))
     conn.register("gold", table)
 
     if after:
@@ -95,3 +132,11 @@ def query_gold_series(series: str, after: str | None = None) -> list[dict[str, A
     conn.close()
 
     return [dict(zip(columns, row)) for row in result]
+
+
+async def query_gold_series(series: str, after: str | None = None) -> list[dict[str, Any]]:
+    """Query gold Parquet for a given series, optionally filtered by date."""
+    data = await _read_gold_bytes(series)
+    if data is None:
+        return []
+    return _query_parquet_bytes(data, after)

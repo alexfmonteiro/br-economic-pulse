@@ -88,7 +88,7 @@ async def health() -> HealthResponse:
 
 @app.get("/api/metrics/{series}")
 async def get_metrics(series: str, after: str | None = None) -> MetricsResponse:
-    rows = query_gold_series(series, after=after)
+    rows = await query_gold_series(series, after=after)
     if not rows:
         raise HTTPException(status_code=404, detail=f"Series '{series}' not found")
 
