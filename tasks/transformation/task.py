@@ -146,6 +146,10 @@ class TransformationTask(BaseTask):
         if not select_parts:
             raise ValueError(f"No silver columns defined for {feed.feed_id}")
 
+        # Apply pre_filter from feed config (e.g. filter specific bond type)
+        if feed.processing.silver.pre_filter:
+            where_parts.append(feed.processing.silver.pre_filter)
+
         where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
 
         # Include _ingested_at if the bronze data has it, else use a placeholder

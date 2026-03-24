@@ -136,9 +136,9 @@ const SERIES_LABELS: Record<string, string> = {
   bcb_432: 'SELIC',
   bcb_433: 'IPCA',
   bcb_1: 'USD/BRL',
-  ibge_pnad: 'Unemployment',
-  ibge_gdp: 'GDP',
-  tesouro: 'Tesouro Direto',
+  ibge_pnad: 'Taxa de Desemprego',
+  ibge_gdp: 'PIB',
+  tesouro: 'Tesouro Prefixado',
 };
 
 export function getSeriesLabel(seriesId: string): string {
@@ -186,13 +186,16 @@ export interface SeriesConfig {
   unit: string;
   source: string;
   color: string;
+  /** Hours without a new data point before the series is considered stale.
+   *  Stale = 1× threshold, Critical = 2× threshold. */
+  freshnessHours: number;
 }
 
 export const SERIES: SeriesConfig[] = [
-  { id: 'bcb_432', label: 'SELIC', unit: '% a.a.', source: 'BCB', color: '#3b82f6' },
-  { id: 'bcb_433', label: 'IPCA', unit: '% a.m.', source: 'BCB', color: '#8b5cf6' },
-  { id: 'bcb_1', label: 'USD/BRL', unit: 'R$', source: 'BCB', color: '#22c55e' },
-  { id: 'ibge_pnad', label: 'Unemployment', unit: '%', source: 'IBGE', color: '#f59e0b' },
-  { id: 'ibge_gdp', label: 'GDP', unit: 'R$ bi', source: 'IBGE', color: '#06b6d4' },
-  { id: 'tesouro', label: 'Tesouro Direto', unit: '% a.a.', source: 'Tesouro', color: '#ec4899' },
+  { id: 'bcb_432', label: 'SELIC', unit: '% a.a.', source: 'BCB', color: '#3b82f6', freshnessHours: 72 },
+  { id: 'bcb_433', label: 'IPCA', unit: '% a.m.', source: 'BCB', color: '#8b5cf6', freshnessHours: 1080 },
+  { id: 'bcb_1', label: 'USD/BRL', unit: 'R$', source: 'BCB', color: '#22c55e', freshnessHours: 72 },
+  { id: 'ibge_pnad', label: 'Taxa de Desemprego', unit: '%', source: 'IBGE', color: '#f59e0b', freshnessHours: 2400 },
+  { id: 'ibge_gdp', label: 'PIB', unit: 'R$ bi', source: 'IBGE', color: '#06b6d4', freshnessHours: 1080 },
+  { id: 'tesouro', label: 'Tesouro Prefixado', unit: '% a.a.', source: 'Tesouro', color: '#ec4899', freshnessHours: 72 },
 ];

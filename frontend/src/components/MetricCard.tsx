@@ -105,7 +105,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
       </div>
 
       <div className="flex items-center justify-between mt-3">
-        <FreshnessBadge lastUpdated={data.last_updated} />
+        <FreshnessBadge lastUpdated={data.last_updated} freshnessHours={config.freshnessHours} />
         <span className="text-[10px] text-slate-600">
           {points.length} pts {data.last_updated ? `\u00B7 ${formatDate(data.last_updated, locale)}` : ''}
         </span>

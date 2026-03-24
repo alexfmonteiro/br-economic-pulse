@@ -243,6 +243,7 @@ class SilverProcessingConfig(BaseModel):
     primary_key: list[str] = Field(default_factory=list)
     dedup_columns: list[str] = Field(default_factory=list)
     dedup_order_by: str = "_ingested_at DESC"
+    pre_filter: str | None = None
 
 
 class FeedProcessingConfig(BaseModel):

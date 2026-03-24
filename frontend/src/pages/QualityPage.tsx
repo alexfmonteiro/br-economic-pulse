@@ -167,7 +167,7 @@ function QualityStatusPanel() {
 
 const FRESHNESS_RANGE: TimeRange = 'ALL';
 
-function SeriesFreshnessRow({ seriesId, label }: { seriesId: string; label: string }) {
+function SeriesFreshnessRow({ seriesId, label, freshnessHours }: { seriesId: string; label: string; freshnessHours: number }) {
   const { data, isLoading } = useMetrics(seriesId, FRESHNESS_RANGE);
   const { t } = useLanguage();
 
@@ -185,7 +185,7 @@ function SeriesFreshnessRow({ seriesId, label }: { seriesId: string; label: stri
             <span className="text-[10px] text-slate-500">
               {data?.data_points.length ?? 0} {t.analytics.points}
             </span>
-            <FreshnessBadge lastUpdated={data?.last_updated ?? null} />
+            <FreshnessBadge lastUpdated={data?.last_updated ?? null} freshnessHours={freshnessHours} />
           </>
         )}
       </div>
@@ -255,7 +255,7 @@ export function QualityPage() {
           </h3>
           <div>
             {SERIES.map((s) => (
-              <SeriesFreshnessRow key={s.id} seriesId={s.id} label={s.label} />
+              <SeriesFreshnessRow key={s.id} seriesId={s.id} label={s.label} freshnessHours={s.freshnessHours} />
             ))}
           </div>
         </div>
