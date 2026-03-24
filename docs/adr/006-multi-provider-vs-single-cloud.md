@@ -14,8 +14,9 @@ Single cloud (AWS) estimated cost: ~$40-65/month. Single cloud (GCP):
 
 ## Decision
 Use multi-provider free tiers for v1. Each provider was chosen for its
-generous free tier. All infrastructure is managed in Terraform from day one,
-making future consolidation a configuration change rather than a rewrite.
+generous free tier. Infrastructure is provisioned manually via provider UIs for
+v1 and codified in Terraform from v1.5 onward (see ADR-007), making future
+consolidation a configuration change rather than a rewrite.
 
 ## Consequences
 - Total running cost under $15/month — sustainable for a portfolio project
