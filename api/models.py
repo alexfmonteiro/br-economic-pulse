@@ -294,6 +294,60 @@ class FeedConfig(BaseModel):
     metadata: FeedMetadataConfig = Field(default_factory=FeedMetadataConfig)
 
 
+# --- Query Models ---
+
+
+class QueryTier(str, Enum):
+    DIRECT_LOOKUP = "direct_lookup"
+    FULL_LLM = "full_llm"
+
+
+class DataPoint(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    series: str
+    value: float
+    date: datetime
+
+
+class QueryRequest(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    question: str = Field(..., max_length=500)
+
+
+class QueryResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    answer: str
+    data_points: list[DataPoint] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    tier_used: QueryTier = QueryTier.FULL_LLM
+    llm_tokens_used: int = 0
+
+
+# --- Insight Models ---
+
+
+class InsightRecord(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    content: str
+    language: str
+    metric_refs: list[str] = Field(default_factory=list)
+    model_version: str = ""
+    run_id: str = ""
+    generated_at: datetime
+    confidence_flag: bool = True
+
+
+class InsightResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    insights: list[InsightRecord] = Field(default_factory=list)
+    latest_run_id: str | None = None
+
+
 # --- Silver Watermark ---
 
 
