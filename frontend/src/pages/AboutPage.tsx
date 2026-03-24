@@ -15,27 +15,71 @@ export function AboutPage() {
       <div className="space-y-8">
         {/* Architecture Diagram */}
         <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-6">
             {t.about.architecture}
           </h2>
-          <div className="overflow-x-auto">
-            <pre className="text-xs text-slate-400 font-mono leading-relaxed">
-{`  Data Sources          Medallion Pipeline            API Layer         Frontend
-  +-----------+      +---------------------------+   +-----------+   +-----------+
-  | BCB       |--+   |                           |   |           |   |           |
-  +-----------+  |   |  Bronze    Silver    Gold  |   |  FastAPI  |   |   React   |
-                 +-->|  (raw) --> (clean) --> (agg)|-->|  + DuckDB |-->|  + Vite   |
-  +-----------+  |   |                           |   |           |   |           |
-  | IBGE      |--+   +---------------------------+   +-----------+   +-----------+
-  +-----------+  |           |                           |
-                 |   +-------v--------+          +-------v--------+
-  +-----------+  |   | Quality Checks |          |  Claude Sonnet |
-  | Tesouro   |--+   | (validation)   |          |  (Insights +   |
-  +-----------+      +----------------+          |   Query Agent) |
-                                                 +----------------+
 
-  Storage: Cloudflare R2 (production) / Local filesystem (dev)
-  Orchestration: GitHub Actions + Webhook triggers`}</pre>
+          {/* Flow diagram */}
+          <div className="flex flex-col gap-6">
+            {/* Main pipeline row */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-stretch">
+              {/* Data Sources */}
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Data Sources</p>
+                <div className="flex flex-col gap-2">
+                  <span className="inline-flex items-center rounded-md bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 text-xs text-blue-400">BCB</span>
+                  <span className="inline-flex items-center rounded-md bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 text-xs text-blue-400">IBGE</span>
+                  <span className="inline-flex items-center rounded-md bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 text-xs text-blue-400">Tesouro</span>
+                </div>
+              </div>
+
+              {/* Medallion Pipeline */}
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Medallion Pipeline</p>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="rounded bg-amber-500/15 border border-amber-500/25 px-2 py-1 text-amber-400">Bronze</span>
+                  <span className="text-slate-600">&rarr;</span>
+                  <span className="rounded bg-slate-500/15 border border-slate-500/25 px-2 py-1 text-slate-300">Silver</span>
+                  <span className="text-slate-600">&rarr;</span>
+                  <span className="rounded bg-yellow-500/15 border border-yellow-500/25 px-2 py-1 text-yellow-400">Gold</span>
+                </div>
+                <p className="text-[10px] text-slate-600 mt-2">raw &rarr; clean &rarr; aggregated</p>
+              </div>
+
+              {/* API Layer */}
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">API Layer</p>
+                <div className="flex flex-col gap-2">
+                  <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs text-emerald-400">FastAPI</span>
+                  <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs text-emerald-400">DuckDB</span>
+                </div>
+              </div>
+
+              {/* Frontend */}
+              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Frontend</p>
+                <div className="flex flex-col gap-2">
+                  <span className="inline-flex items-center rounded-md bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 text-xs text-cyan-400">React + Vite</span>
+                  <span className="inline-flex items-center rounded-md bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 text-xs text-cyan-400">Recharts</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Supporting services */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Quality</p>
+                <p className="text-xs text-slate-400">Null rates, ranges, freshness</p>
+              </div>
+              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">AI Agents</p>
+                <p className="text-xs text-slate-400">Claude Sonnet &mdash; insights + queries</p>
+              </div>
+              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Infra</p>
+                <p className="text-xs text-slate-400">R2 storage, GitHub Actions, Terraform</p>
+              </div>
+            </div>
           </div>
         </section>
 
