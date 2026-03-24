@@ -38,6 +38,27 @@ jobs:
       - name: Run pipeline
         run: uv run python -m pipeline.flow ${{ inputs.backfill == true && '--backfill' || '' }}
 
+      - name: Trigger Railway gold sync
+        if: success()
+        env:
+          RAILWAY_API_URL: ${{ secrets.RAILWAY_API_URL }}
+          SYNC_WEBHOOK_SECRET: ${{ secrets.SYNC_WEBHOOK_SECRET }}
+        run: |
+          for attempt in 1 2 3; do
+            echo "Sync attempt $attempt..."
+            status=$(curl -sf -o /dev/null -w "%{http_code}" -X POST \
+              "${RAILWAY_API_URL}/api/internal/sync" \
+              -H "Authorization: Bearer ${SYNC_WEBHOOK_SECRET}" \
+              --max-time 60) && break || true
+            echo "Attempt $attempt failed (HTTP $status), retrying in 30s..."
+            sleep 30
+          done
+          if [ "$status" != "200" ]; then
+            echo "::error::Sync failed after 3 attempts (last HTTP $status)"
+            exit 1
+          fi
+          echo "Sync completed successfully"
+
       - name: Download quality report from R2
         if: always()
         run: |
