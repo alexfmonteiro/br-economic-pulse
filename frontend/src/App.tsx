@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { Dashboard } from '@/pages/Dashboard';
 import { AskPage } from '@/pages/AskPage';
@@ -24,6 +25,7 @@ function LanguageToggle() {
 
 function NavBar() {
   const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none ${
@@ -32,19 +34,58 @@ function NavBar() {
         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
     }`;
 
+  const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+      isActive
+        ? 'bg-brand-600 text-white'
+        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+    }`;
+
   return (
     <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 gap-1">
-        <NavLink to="/" className="text-lg font-bold text-slate-100 mr-6">
+        <NavLink to="/" className="text-lg font-bold text-slate-100 mr-4 shrink-0 whitespace-nowrap">
           BR Economic Pulse
         </NavLink>
-        <NavLink to="/" end className={linkClass}>{t.nav.home}</NavLink>
-        <NavLink to="/dashboard" className={linkClass}>{t.nav.dashboard}</NavLink>
-        <NavLink to="/ask" className={linkClass}>{t.nav.askAi}</NavLink>
-        <NavLink to="/quality" className={linkClass}>{t.nav.quality}</NavLink>
-        <NavLink to="/about" className={linkClass}>{t.nav.about}</NavLink>
-        <LanguageToggle />
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-1">
+          <NavLink to="/" end className={linkClass}>{t.nav.home}</NavLink>
+          <NavLink to="/dashboard" className={linkClass}>{t.nav.dashboard}</NavLink>
+          <NavLink to="/ask" className={linkClass}>{t.nav.askAi}</NavLink>
+          <NavLink to="/quality" className={linkClass}>{t.nav.quality}</NavLink>
+          <NavLink to="/about" className={linkClass}>{t.nav.about}</NavLink>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <LanguageToggle />
+          {/* Hamburger button — mobile only */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="md:hidden p-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              {open ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown */}
+      {open && (
+        <div className="md:hidden border-t border-slate-800 px-4 py-2 space-y-1 bg-slate-900/95 backdrop-blur-sm">
+          <NavLink to="/" end className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.home}</NavLink>
+          <NavLink to="/dashboard" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.dashboard}</NavLink>
+          <NavLink to="/ask" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.askAi}</NavLink>
+          <NavLink to="/quality" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.quality}</NavLink>
+          <NavLink to="/about" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.about}</NavLink>
+        </div>
+      )}
     </nav>
   );
 }

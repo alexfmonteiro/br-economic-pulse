@@ -85,6 +85,16 @@ export const translations = {
       authorBio: 'Built by Alex Monteiro. Combines data pipelines, LLM integration, and frontend development around Brazilian economic data.',
       authorArch: 'Uses a Medallion pipeline (Bronze/Silver/Gold) with automated ingestion, quality checks, LLM-generated insights, and smart query routing.',
     },
+    seriesLabels: {
+      bcb_432: 'SELIC',
+      bcb_433: 'IPCA',
+      bcb_1: 'USD/BRL',
+      ibge_pnad: 'Unemployment',
+      ibge_gdp: 'GDP',
+      tesouro_prefixado_curto: 'Prefixed Short-term',
+      tesouro_prefixado_longo: 'Prefixed Long-term',
+      tesouro_ipca: 'Real Yield (IPCA+)',
+    },
     seriesHints: {
       bcb_432: 'The benchmark interest rate set by Brazil\'s central bank. Higher SELIC tightens credit and slows inflation; lower SELIC stimulates borrowing and growth.',
       bcb_433: 'Brazil\'s official consumer price index, measured month-over-month. Positive values mean prices are rising; above ~0.5% monthly signals strong inflationary pressure.',
@@ -192,6 +202,16 @@ export const translations = {
       author: 'Autor',
       authorBio: 'Desenvolvido por Alex Monteiro. Combina pipelines de dados, integracao com LLM e desenvolvimento frontend com dados economicos brasileiros.',
       authorArch: 'Usa o pipeline Medallion (Bronze/Silver/Gold) com ingestao automatizada, verificacoes de qualidade, insights gerados por LLM e roteamento inteligente de consultas.',
+    },
+    seriesLabels: {
+      bcb_432: 'SELIC',
+      bcb_433: 'IPCA',
+      bcb_1: 'USD/BRL',
+      ibge_pnad: 'Taxa de Desemprego',
+      ibge_gdp: 'PIB',
+      tesouro_prefixado_curto: 'Prefixado Curto',
+      tesouro_prefixado_longo: 'Prefixado Longo',
+      tesouro_ipca: 'Juros Real (IPCA+)',
     },
     seriesHints: {
       bcb_432: 'Taxa basica de juros definida pelo Banco Central. SELIC mais alta encarece o credito e freia a inflacao; mais baixa estimula emprestimos e o crescimento.',

@@ -255,7 +255,7 @@ export function QualityPage() {
           </h3>
           <div>
             {SERIES.map((s) => (
-              <SeriesFreshnessRow key={s.id} seriesId={s.id} label={s.label} freshnessHours={s.freshnessHours} />
+              <SeriesFreshnessRow key={s.id} seriesId={s.id} label={(t.seriesLabels as Record<string, string>)[s.id] ?? s.label} freshnessHours={s.freshnessHours} />
             ))}
           </div>
         </div>

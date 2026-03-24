@@ -47,6 +47,7 @@ interface ChartCardProps {
 }
 
 function ChartCard({ config, range, t, locale }: ChartCardProps) {
+  const label = (t.seriesLabels as Record<string, string>)[config.id] ?? config.label;
   const hint = (t.seriesHints as Record<string, string>)[config.id] ?? '';
   const { data, isLoading, isError } = useMetrics(config.id, range);
 
@@ -64,7 +65,7 @@ function ChartCard({ config, range, t, locale }: ChartCardProps) {
     <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-200">{config.label}</h3>
+          <h3 className="text-sm font-semibold text-slate-200">{label}</h3>
           <p className="text-[10px] text-slate-500 uppercase tracking-wider">
             {config.source} | {config.unit}
           </p>

@@ -21,7 +21,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Security audit
-        run: uv run pip-audit
+        run: uv run pip-audit --ignore-vuln CVE-2026-4539  # pygments 2.19.2, no fix available yet
 
       - name: Lint
         run: uv run ruff check .

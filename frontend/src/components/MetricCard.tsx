@@ -28,6 +28,7 @@ function formatDate(dateStr: string, locale: string): string {
 export function MetricCard({ config, range }: MetricCardProps) {
   const { language, t } = useLanguage();
   const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+  const label = (t.seriesLabels as Record<string, string>)[config.id] ?? config.label;
   const hint = (t.seriesHints as Record<string, string>)[config.id] ?? '';
   const { data, isLoading, isError } = useMetrics(config.id, range);
 
@@ -45,7 +46,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
     return (
       <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-sm font-medium text-slate-400">{config.label}</h3>
+          <h3 className="text-sm font-medium text-slate-400">{label}</h3>
           <span className="text-[10px] text-slate-600">{config.source}</span>
         </div>
         <p className="text-2xl font-semibold text-slate-500">--</p>
@@ -67,7 +68,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
             <Tooltip.Root>
               <Tooltip.Trigger asChild>
                 <h3 className="text-sm font-medium text-slate-400 cursor-help border-b border-dotted border-slate-600">
-                  {config.label}
+                  {label}
                 </h3>
               </Tooltip.Trigger>
               <Tooltip.Portal>
@@ -84,7 +85,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
             </Tooltip.Root>
           </Tooltip.Provider>
         ) : (
-          <h3 className="text-sm font-medium text-slate-400">{config.label}</h3>
+          <h3 className="text-sm font-medium text-slate-400">{label}</h3>
         )}
         <span className="text-[10px] text-slate-600 uppercase tracking-wider">{config.source}</span>
       </div>
