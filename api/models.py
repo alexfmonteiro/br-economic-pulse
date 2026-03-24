@@ -345,6 +345,8 @@ class InsightRecord(BaseModel):
     run_id: str = ""
     generated_at: datetime
     confidence_flag: bool = True
+    insight_type: str = "digest"
+    anomaly_hash: str | None = None
 
 
 class InsightResponse(BaseModel):

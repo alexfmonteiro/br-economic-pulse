@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SERIES, type TimeRange } from '@/lib/api';
 import { MetricCard } from '@/components/MetricCard';
 import { InsightDigest } from '@/components/InsightDigest';
+import { AnomalyCard } from '@/components/AnomalyCard';
 import { RangeSelector } from '@/components/RangeSelector';
 import { useHealth } from '@/hooks/useMetrics';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -52,7 +53,10 @@ export function Dashboard() {
       </div>
 
       {/* Insight Digest */}
-      <InsightDigest />
+      <div className="space-y-4">
+        <InsightDigest />
+        <AnomalyCard />
+      </div>
 
       {/* Footer */}
       <footer className="mt-12 py-6 border-t border-slate-800 text-center text-xs text-slate-600">

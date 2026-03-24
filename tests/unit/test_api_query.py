@@ -253,6 +253,8 @@ class TestInsightsLatest:
                 "run_id": "abc123",
                 "generated_at": now,
                 "confidence_flag": True,
+                "insight_type": "digest",
+                "anomaly_hash": None,
             },
             {
                 "content": "Resumo economico em portugues",
@@ -262,6 +264,8 @@ class TestInsightsLatest:
                 "run_id": "abc123",
                 "generated_at": now,
                 "confidence_flag": True,
+                "insight_type": "digest",
+                "anomaly_hash": None,
             },
         ]
 

@@ -111,6 +111,8 @@ export interface InsightRecord {
   run_id: string;
   generated_at: string;
   confidence_flag: boolean;
+  insight_type?: string;
+  anomaly_hash?: string | null;
 }
 
 export interface InsightResponse {
@@ -162,6 +164,9 @@ export const fetchQualityLatest = (): Promise<QualityLatest> =>
 
 export const fetchInsightsLatest = (): Promise<InsightResponse> =>
   fetchJSON('/api/insights/latest');
+
+export const fetchAnomalyInsights = (): Promise<InsightResponse> =>
+  fetchJSON('/api/insights/anomalies');
 
 export const fetchSyncStatus = (): Promise<SyncStatusResponse> =>
   fetchJSON('/api/quality/sync-status');

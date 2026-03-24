@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
@@ -15,9 +17,9 @@ import structlog
 from agents.base import BaseAgent
 from api.dependencies import query_gold_series
 from api.models import AgentResult, InsightRecord
-from api.series_config import get_all_series_ids
+from api.series_config import SERIES_DISPLAY, get_all_series_ids
 from security.sanitize import sanitize_for_prompt
-from security.xml_fencing import build_insight_prompt
+from security.xml_fencing import build_anomaly_prompt, build_insight_prompt
 
 logger = structlog.get_logger()
 
@@ -32,9 +34,27 @@ CREATE TABLE IF NOT EXISTS insights (
     model_version VARCHAR(100) NOT NULL,
     run_id VARCHAR(100) NOT NULL,
     generated_at TIMESTAMPTZ NOT NULL,
-    confidence_flag BOOLEAN DEFAULT TRUE
+    confidence_flag BOOLEAN DEFAULT TRUE,
+    insight_type VARCHAR(20) DEFAULT 'digest',
+    anomaly_hash VARCHAR(64) DEFAULT NULL
 );
 """
+
+_MIGRATE_TABLE_SQL = """
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='insights' AND column_name='insight_type') THEN
+        ALTER TABLE insights ADD COLUMN insight_type VARCHAR(20) DEFAULT 'digest';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='insights' AND column_name='anomaly_hash') THEN
+        ALTER TABLE insights ADD COLUMN anomaly_hash VARCHAR(64) DEFAULT NULL;
+    END IF;
+END $$;
+"""
+
+_MAX_ANOMALIES_FOR_PROMPT = 30
 
 
 def _compute_z_scores(values: list[float]) -> list[float]:
@@ -75,6 +95,47 @@ def _detect_anomalies(
                     f"value={row['value']}, z-score={z:.2f}"
                 )
     return anomalies
+
+
+def _compute_anomaly_hash(anomalies: list[str]) -> str:
+    """Compute a deterministic hash of the anomaly set for dedup."""
+    canonical = "\n".join(sorted(anomalies))
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
+def _extract_z_score(anomaly: str) -> float:
+    """Extract absolute z-score from an anomaly description string."""
+    try:
+        return abs(float(anomaly.split("z-score=")[1]))
+    except (IndexError, ValueError):
+        return 0.0
+
+
+def _format_anomaly_prompt_data(anomalies: list[str]) -> str:
+    """Format anomalies grouped by series for the prompt."""
+    parts: list[str] = [f"Total anomalies detected: {len(anomalies)}", ""]
+
+    by_series: dict[str, list[str]] = defaultdict(list)
+    for a in anomalies:
+        series_name = a.split(" on ")[0] if " on " in a else "unknown"
+        by_series[series_name].append(a)
+
+    for series_name, items in sorted(by_series.items()):
+        parts.append(f"## {series_name}")
+        for item in items:
+            parts.append(f"  - {item}")
+        parts.append("")
+
+    return "\n".join(parts)
+
+
+def _build_series_descriptions() -> str:
+    """Build a formatted string of series descriptions for the anomaly prompt."""
+    parts: list[str] = []
+    for sid, meta in SERIES_DISPLAY.items():
+        desc = meta.get("description", "")
+        parts.append(f"{meta['label']} ({sid}): {desc}")
+    return "\n".join(parts)
 
 
 def _format_gold_summary(
@@ -269,6 +330,19 @@ class InsightAgent(BaseAgent):
             languages=[r.language for r in records],
         )
 
+        # --- Step 5b: Generate anomaly analysis ---
+        if anomalies:
+            try:
+                anomaly_records = await self._generate_anomaly_analysis(
+                    anomalies, metric_refs, run_id, generated_at,
+                )
+                if anomaly_records:
+                    records.extend(anomaly_records)
+                    logger.info("anomaly_analysis_generated", count=len(anomaly_records))
+            except Exception as exc:
+                warnings.append(f"Anomaly analysis failed: {exc}")
+                logger.warning("anomaly_analysis_error", error=str(exc))
+
         # --- Step 6: Store results in Postgres ---
         try:
             await self._store_insights(records)
@@ -303,13 +377,15 @@ class InsightAgent(BaseAgent):
         conn: asyncpg.Connection = await asyncpg.connect(database_url)
         try:
             await conn.execute(_CREATE_TABLE_SQL)
+            await conn.execute(_MIGRATE_TABLE_SQL)
             for record in records:
                 await conn.execute(
                     """
                     INSERT INTO insights
                         (content, language, metric_refs, model_version,
-                         run_id, generated_at, confidence_flag)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                         run_id, generated_at, confidence_flag,
+                         insight_type, anomaly_hash)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                     """,
                     record.content,
                     record.language,
@@ -318,10 +394,91 @@ class InsightAgent(BaseAgent):
                     record.run_id,
                     record.generated_at,
                     record.confidence_flag,
+                    record.insight_type,
+                    record.anomaly_hash,
                 )
             logger.info("insights_stored", count=len(records))
         finally:
             await conn.close()
+
+    async def _anomaly_hash_exists(self, anomaly_hash: str) -> bool:
+        """Check if an anomaly insight with this hash already exists recently."""
+        database_url = os.environ.get("DATABASE_URL", "")
+        if not database_url:
+            return False
+        try:
+            conn: asyncpg.Connection = await asyncpg.connect(database_url)
+            try:
+                row = await conn.fetchrow(
+                    "SELECT id FROM insights "
+                    "WHERE insight_type = 'anomaly' AND anomaly_hash = $1 "
+                    "AND generated_at > NOW() - INTERVAL '7 days' "
+                    "LIMIT 1",
+                    anomaly_hash,
+                )
+                return row is not None
+            finally:
+                await conn.close()
+        except Exception:
+            return False
+
+    async def _generate_anomaly_analysis(
+        self,
+        anomalies: list[str],
+        metric_refs: list[str],
+        run_id: str,
+        generated_at: datetime,
+    ) -> list[InsightRecord]:
+        """Generate Claude-powered anomaly analysis with macro context."""
+        # Cap at top N by z-score magnitude
+        sorted_anomalies = sorted(
+            anomalies, key=_extract_z_score, reverse=True
+        )[:_MAX_ANOMALIES_FOR_PROMPT]
+
+        anomaly_hash = _compute_anomaly_hash(sorted_anomalies)
+
+        # Dedup: skip if same anomaly set was analyzed recently
+        if await self._anomaly_hash_exists(anomaly_hash):
+            logger.info("anomaly_analysis_skipped_dedup", hash=anomaly_hash)
+            return []
+
+        # Build prompt
+        anomaly_data = _format_anomaly_prompt_data(sorted_anomalies)
+        series_descriptions = _build_series_descriptions()
+        system_prompt, user_message = build_anomaly_prompt(
+            anomaly_data, series_descriptions
+        )
+
+        # Call Claude
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not api_key:
+            return []
+
+        client = anthropic.AsyncAnthropic(api_key=api_key)
+        response = await client.messages.create(
+            model=_MODEL_VERSION,
+            max_tokens=2048,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        first_block = response.content[0]
+        if not isinstance(first_block, atypes.TextBlock):
+            raise TypeError(f"Expected TextBlock, got {type(first_block).__name__}")
+
+        records = _parse_insight_sections(
+            first_block.text,
+            run_id=run_id,
+            generated_at=generated_at,
+            metric_refs=metric_refs,
+            confidence_flag=True,
+        )
+
+        # Mark as anomaly type
+        for record in records:
+            record.insight_type = "anomaly"
+            record.anomaly_hash = anomaly_hash
+
+        return records
 
     async def health_check(self) -> bool:
         """Verify Postgres and Claude API dependencies are reachable."""

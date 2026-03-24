@@ -95,6 +95,12 @@ export const translations = {
       tesouro_prefixado_longo: 'Average yield of pre-fixed government bonds (Tesouro Prefixado) maturing beyond 3 years. Reflects long-term rate expectations. Compare with short-term to gauge yield curve slope.',
       tesouro_ipca: 'Average real yield of inflation-linked government bonds (IPCA+, Educa+, Renda+). Shows the real interest rate demanded by the market above inflation.',
     },
+    anomaly: {
+      title: 'Anomaly Analysis',
+      noData: 'No anomaly analysis available yet. It will appear after the next pipeline run detects statistical outliers.',
+      poweredBy: 'Powered by',
+      badge: 'Macro Context',
+    },
     common: {
       fresh: 'Fresh',
       stale: 'Stale',
@@ -196,6 +202,12 @@ export const translations = {
       tesouro_prefixado_curto: 'Media das taxas dos titulos prefixados (Tesouro Prefixado) com vencimento em ate 3 anos. Reflete as expectativas de juros no curto prazo.',
       tesouro_prefixado_longo: 'Media das taxas dos titulos prefixados (Tesouro Prefixado) com vencimento acima de 3 anos. Reflete expectativas de juros no longo prazo. Compare com o curto para avaliar a inclinacao da curva.',
       tesouro_ipca: 'Media dos juros reais dos titulos atrelados a inflacao (IPCA+, Educa+, Renda+). Mostra a taxa real de juros que o mercado exige acima da inflacao.',
+    },
+    anomaly: {
+      title: 'Analise de Anomalias',
+      noData: 'Analise de anomalias ainda indisponivel. Aparecera apos a proxima execucao do pipeline detectar outliers estatisticos.',
+      poweredBy: 'Gerado por',
+      badge: 'Contexto Macro',
     },
     common: {
       fresh: 'Atualizado',

@@ -3,6 +3,7 @@ import {
   fetchMetrics,
   fetchHealth,
   fetchInsightsLatest,
+  fetchAnomalyInsights,
   fetchSyncStatus,
   fetchQualityLatest,
   getAfterDate,
@@ -40,6 +41,15 @@ export function useInsights() {
   return useQuery<InsightResponse>({
     queryKey: ['insights', 'latest'],
     queryFn: fetchInsightsLatest,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+export function useAnomalyInsights() {
+  return useQuery<InsightResponse>({
+    queryKey: ['insights', 'anomalies'],
+    queryFn: fetchAnomalyInsights,
     staleTime: 5 * 60 * 1000,
     retry: 2,
   });

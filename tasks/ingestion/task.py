@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 from datetime import datetime, timezone
@@ -138,6 +139,8 @@ class IngestionTask(BaseTask):
             feed.source.backfill_window_years,
         )
 
+        max_retries = feed.schedule.retry_attempts
+        retry_delay = feed.schedule.retry_delay_seconds
         all_records: list[dict[str, Any]] = []
         failed_windows: list[str] = []
         for w_start, w_end in windows:
@@ -148,18 +151,36 @@ class IngestionTask(BaseTask):
                 window_start=w_start,
                 window_end=w_end,
             )
-            try:
-                response = await client.get(url)
-                response.raise_for_status()
-                records = self._parse_response(response, feed)
-                all_records.extend(records)
-            except Exception as exc:
+            last_exc: Exception | None = None
+            for attempt in range(1, max_retries + 1):
+                try:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    records = self._parse_response(response, feed)
+                    all_records.extend(records)
+                    last_exc = None
+                    break
+                except Exception as exc:
+                    last_exc = exc
+                    if attempt < max_retries:
+                        logger.info(
+                            "backfill_window_retry",
+                            feed_id=feed.feed_id,
+                            window_start=w_start,
+                            window_end=w_end,
+                            attempt=attempt,
+                            max_retries=max_retries,
+                            error=str(exc),
+                        )
+                        await asyncio.sleep(retry_delay)
+            if last_exc is not None:
                 logger.warning(
                     "backfill_window_failed",
                     feed_id=feed.feed_id,
                     window_start=w_start,
                     window_end=w_end,
-                    error=str(exc),
+                    error=str(last_exc),
+                    attempts=max_retries,
                 )
                 failed_windows.append(f"{w_start}-{w_end}")
 

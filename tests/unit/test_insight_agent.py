@@ -12,8 +12,12 @@ import pytest
 
 from agents.insight.agent import (
     InsightAgent,
+    _build_series_descriptions,
+    _compute_anomaly_hash,
     _compute_z_scores,
     _detect_anomalies,
+    _extract_z_score,
+    _format_anomaly_prompt_data,
     _format_gold_summary,
     _parse_insight_sections,
 )
@@ -454,3 +458,83 @@ class TestInsightAgentExecute:
 
         assert result.success is False
         assert any("Postgres storage failed" in e or "DATABASE_URL" in e for e in result.errors)
+
+
+# ---------------------------------------------------------------------------
+# Anomaly analysis helpers
+# ---------------------------------------------------------------------------
+
+
+class TestComputeAnomalyHash:
+    def test_deterministic(self) -> None:
+        anomalies = ["bcb_432 on 2024-01-01: value=10, z-score=2.50", "bcb_1 on 2024-02-01: value=6, z-score=2.10"]
+        assert _compute_anomaly_hash(anomalies) == _compute_anomaly_hash(anomalies)
+
+    def test_order_independent(self) -> None:
+        a = ["first anomaly", "second anomaly"]
+        b = ["second anomaly", "first anomaly"]
+        assert _compute_anomaly_hash(a) == _compute_anomaly_hash(b)
+
+    def test_different_inputs_different_hashes(self) -> None:
+        a = ["bcb_432 on 2024-01-01: value=10, z-score=2.50"]
+        b = ["bcb_433 on 2024-01-01: value=10, z-score=2.50"]
+        assert _compute_anomaly_hash(a) != _compute_anomaly_hash(b)
+
+    def test_returns_16_char_hex(self) -> None:
+        h = _compute_anomaly_hash(["test"])
+        assert len(h) == 16
+        int(h, 16)  # Should be valid hex
+
+
+class TestExtractZScore:
+    def test_extracts_positive(self) -> None:
+        assert _extract_z_score("bcb_432 on 2024-01-01: value=10, z-score=3.14") == pytest.approx(3.14)
+
+    def test_extracts_negative(self) -> None:
+        assert _extract_z_score("bcb_1 on 2020-01-01: value=2.8, z-score=-2.45") == pytest.approx(2.45)
+
+    def test_malformed_returns_zero(self) -> None:
+        assert _extract_z_score("no z-score here") == 0.0
+
+
+class TestFormatAnomalyPromptData:
+    def test_groups_by_series(self) -> None:
+        anomalies = [
+            "bcb_432 on 2024-01-01: value=10, z-score=2.50",
+            "bcb_1 on 2024-02-01: value=6, z-score=2.10",
+            "bcb_432 on 2024-02-01: value=11, z-score=2.60",
+        ]
+        result = _format_anomaly_prompt_data(anomalies)
+        assert "## bcb_1" in result
+        assert "## bcb_432" in result
+        assert "Total anomalies detected: 3" in result
+
+    def test_empty_anomalies(self) -> None:
+        result = _format_anomaly_prompt_data([])
+        assert "Total anomalies detected: 0" in result
+
+
+class TestBuildSeriesDescriptions:
+    def test_includes_all_series(self) -> None:
+        result = _build_series_descriptions()
+        assert "SELIC" in result
+        assert "IPCA" in result
+        assert "USD/BRL" in result
+        assert "PIB" in result
+        assert "Taxa de Desemprego" in result
+        assert "Prefixado Curto" in result
+        assert "Prefixado Longo" in result
+        assert "Juros Real" in result
+
+
+class TestBuildAnomalyPrompt:
+    def test_xml_fencing_structure(self) -> None:
+        from security.xml_fencing import build_anomaly_prompt
+
+        system, user = build_anomaly_prompt("anomaly data here", "series desc here")
+        assert "<anomaly-data" in system
+        assert "anomaly data here" in system
+        assert "<series-descriptions>" in system
+        assert "series desc here" in system
+        assert "<pt>" in user
+        assert "<en>" in user

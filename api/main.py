@@ -399,9 +399,8 @@ async def query_remaining(request: Request) -> dict[str, int]:
     return {"remaining": remaining, "limit": 10}
 
 
-@app.get("/api/insights/latest")
-async def insights_latest() -> InsightResponse:
-    """Return the most recent InsightAgent output from Postgres."""
+async def _fetch_insights_by_type(insight_type: str) -> InsightResponse:
+    """Shared helper to fetch the latest insights of a given type from Postgres."""
     database_url = os.environ.get("DATABASE_URL", "")
     if not database_url:
         logger.warning("insights_no_database_url")
@@ -414,21 +413,24 @@ async def insights_latest() -> InsightResponse:
         return InsightResponse()
 
     try:
-        # Find the latest run_id
         row = await conn.fetchrow(
-            "SELECT run_id FROM insights ORDER BY generated_at DESC LIMIT 1"
+            "SELECT run_id FROM insights "
+            "WHERE insight_type = $1 "
+            "ORDER BY generated_at DESC LIMIT 1",
+            insight_type,
         )
         if row is None:
             return InsightResponse()
 
         latest_run_id: str = row["run_id"]
 
-        # Fetch all records for that run
         rows = await conn.fetch(
             "SELECT content, language, metric_refs, model_version, "
-            "run_id, generated_at, confidence_flag "
-            "FROM insights WHERE run_id = $1 ORDER BY generated_at",
+            "run_id, generated_at, confidence_flag, insight_type, anomaly_hash "
+            "FROM insights WHERE run_id = $1 AND insight_type = $2 "
+            "ORDER BY generated_at",
             latest_run_id,
+            insight_type,
         )
 
         insights = [
@@ -440,16 +442,30 @@ async def insights_latest() -> InsightResponse:
                 run_id=r["run_id"],
                 generated_at=r["generated_at"],
                 confidence_flag=r["confidence_flag"],
+                insight_type=r["insight_type"] or "digest",
+                anomaly_hash=r["anomaly_hash"],
             )
             for r in rows
         ]
 
         return InsightResponse(insights=insights, latest_run_id=latest_run_id)
     except Exception as exc:
-        logger.warning("insights_query_failed", error=str(exc))
+        logger.warning("insights_query_failed", error=str(exc), type=insight_type)
         return InsightResponse()
     finally:
         await conn.close()
+
+
+@app.get("/api/insights/latest")
+async def insights_latest() -> InsightResponse:
+    """Return the most recent digest InsightAgent output from Postgres."""
+    return await _fetch_insights_by_type("digest")
+
+
+@app.get("/api/insights/anomalies")
+async def insights_anomalies() -> InsightResponse:
+    """Return the most recent anomaly analysis from Postgres."""
+    return await _fetch_insights_by_type("anomaly")
 
 
 @app.post("/api/sentry-tunnel", include_in_schema=False)
