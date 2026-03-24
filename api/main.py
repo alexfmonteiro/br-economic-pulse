@@ -41,6 +41,7 @@ from api.models import (
 )
 from api.rate_limiter import check_rate_limit, get_remaining_queries
 from api.series_config import SERIES_DISPLAY
+from api.token_tracker import get_usage_summary, log_query
 
 logger = structlog.get_logger()
 
@@ -156,6 +157,12 @@ async def list_series() -> list[dict[str, str]]:
         {"id": sid, **meta}
         for sid, meta in SERIES_DISPLAY.items()
     ]
+
+
+@app.get("/api/query/usage")
+async def query_usage() -> dict[str, object]:
+    """Return aggregated token usage stats."""
+    return await get_usage_summary()
 
 
 @app.get("/api/metrics/{series}")
@@ -274,6 +281,20 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
         tier=query_resp.tier_used.value,
         tokens=query_resp.llm_tokens_used,
     )
+
+    # Fire-and-forget audit logging (don't block the response)
+    asyncio.ensure_future(log_query(
+        question=body.question,
+        system_prompt=agent.last_system_prompt,
+        answer=query_resp.answer,
+        tier=query_resp.tier_used.value,
+        model="claude-haiku-4-5-20251001" if query_resp.tier_used.value == "full_llm" else "",
+        input_tokens=query_resp.llm_input_tokens,
+        output_tokens=query_resp.llm_output_tokens,
+        duration_ms=result.duration_ms,
+        language=body.language,
+        session_hash=session_id[:16],
+    ))
 
     return query_resp
 

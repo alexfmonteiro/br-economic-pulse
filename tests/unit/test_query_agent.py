@@ -413,7 +413,7 @@ class TestQueryAgentDetermineSources:
         from api.models import DataPoint
 
         dp = DataPoint(
-            series="bcb_432",
+            series="SELIC",
             value=11.75,
             date=datetime(2024, 1, 1, tzinfo=timezone.utc),
         )
@@ -424,7 +424,7 @@ class TestQueryAgentDetermineSources:
         from api.models import DataPoint
 
         dp = DataPoint(
-            series="ibge_pnad",
+            series="Unemployment",
             value=8.0,
             date=datetime(2024, 1, 1, tzinfo=timezone.utc),
         )
@@ -435,8 +435,8 @@ class TestQueryAgentDetermineSources:
         from api.models import DataPoint
 
         dps = [
-            DataPoint(series="bcb_432", value=11.0, date=datetime(2024, 1, 1, tzinfo=timezone.utc)),
-            DataPoint(series="ibge_gdp", value=2.0, date=datetime(2024, 1, 1, tzinfo=timezone.utc)),
+            DataPoint(series="SELIC", value=11.0, date=datetime(2024, 1, 1, tzinfo=timezone.utc)),
+            DataPoint(series="GDP", value=2.0, date=datetime(2024, 1, 1, tzinfo=timezone.utc)),
         ]
         sources = QueryAgent._determine_sources(dps)
         assert "Banco Central do Brasil" in sources

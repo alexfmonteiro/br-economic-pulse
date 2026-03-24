@@ -325,6 +325,8 @@ class QueryResponse(BaseModel):
     sources: list[str] = Field(default_factory=list)
     tier_used: QueryTier = QueryTier.FULL_LLM
     llm_tokens_used: int = 0
+    llm_input_tokens: int = 0
+    llm_output_tokens: int = 0
 
 
 # --- Insight Models ---

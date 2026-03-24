@@ -1,4 +1,4 @@
-"""QueryAgent — answers user questions using Tier 1 (DuckDB) or Tier 3 (Claude)."""
+"""QueryAgent — answers user questions using Tier 1 (DuckDB) or Tier 2 (Haiku)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import structlog
 from anthropic.types import MessageParam
 
 from agents.base import BaseAgent
-from agents.query.router import QuerySkillRouter
+from agents.query.router import METRIC_KEYWORDS, QuerySkillRouter
 from api.dependencies import query_gold_series
 from api.models import (
     AgentResult,
@@ -28,17 +28,20 @@ logger = structlog.get_logger()
 # Series that originate from BCB (used for source attribution).
 BCB_SERIES: set[str] = {sid for sid, m in SERIES_DISPLAY.items() if m["source"] == "BCB"}
 
-# All series we know about — queried for FULL_LLM context.
+# All series we know about.
 ALL_SERIES: list[str] = list(SERIES_DISPLAY.keys())
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-haiku-4-5-20251001"
+
+# Max recent data points to include per relevant series.
+_MAX_CONTEXT_POINTS = 10
 
 
 class QueryAgent(BaseAgent):
     """Answer user questions about Brazilian economic indicators.
 
     Tier 1 (DIRECT_LOOKUP): simple latest-value questions answered via DuckDB.
-    Tier 3 (FULL_LLM): complex questions answered by Claude with XML fencing.
+    Tier 2 (FULL_LLM): questions answered by Haiku with focused context.
     """
 
     def __init__(
@@ -52,6 +55,7 @@ class QueryAgent(BaseAgent):
         self._language = language
         self._router = QuerySkillRouter()
         self._query_response: QueryResponse | None = None
+        self._last_system_prompt: str = ""
 
     # ------------------------------------------------------------------
     # BaseAgent interface
@@ -65,6 +69,11 @@ class QueryAgent(BaseAgent):
     def query_response(self) -> QueryResponse | None:
         """Expose the structured QueryResponse for the API layer."""
         return self._query_response
+
+    @property
+    def last_system_prompt(self) -> str:
+        """The system prompt used in the last LLM call (for audit logging)."""
+        return self._last_system_prompt
 
     async def _execute(self) -> AgentResult:
         """Orchestrate the full query flow."""
@@ -100,7 +109,7 @@ class QueryAgent(BaseAgent):
                     metric=metric,
                     error=str(exc),
                 )
-                # Escalate to Tier 3 on failure
+                # Escalate to LLM on failure
                 self._query_response = await self.handle_full_llm(
                     sanitized, self._history
                 )
@@ -165,7 +174,7 @@ class QueryAgent(BaseAgent):
         )
 
     # ------------------------------------------------------------------
-    # Tier 3 — Full LLM call via Claude
+    # Tier 2 — Haiku with focused context
     # ------------------------------------------------------------------
 
     async def handle_full_llm(
@@ -173,10 +182,13 @@ class QueryAgent(BaseAgent):
         question: str,
         history: list[dict[str, str]],
     ) -> QueryResponse:
-        """Answer a complex question using Claude with XML-fenced context."""
+        """Answer a question using Haiku with only the relevant data."""
 
-        # Gather context from all gold series
-        context_data = await self._gather_context()
+        # Identify which series the question is about
+        relevant = self._extract_relevant_series(question)
+
+        # Build compact context — only relevant series get detail
+        context_data = await self._build_compact_context(relevant)
 
         # Build XML-fenced prompt
         system_prompt, user_message = build_query_prompt(context_data, question)
@@ -187,6 +199,8 @@ class QueryAgent(BaseAgent):
         else:
             system_prompt += "\n\nIMPORTANT: Always respond in English."
 
+        self._last_system_prompt = system_prompt
+
         # Build messages list (include conversation history)
         messages: list[MessageParam] = []
         for entry in history:
@@ -195,7 +209,7 @@ class QueryAgent(BaseAgent):
                 messages.append({"role": role, "content": entry["content"]})  # type: ignore[typeddict-item]
         messages.append({"role": "user", "content": user_message})
 
-        # Stream Claude response
+        # Call Haiku
         api_key = os.environ.get("ANTHROPIC_API_KEY", "")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY is not set")
@@ -207,7 +221,7 @@ class QueryAgent(BaseAgent):
 
         async with client.messages.stream(
             model=_MODEL,
-            max_tokens=1024,
+            max_tokens=512,
             system=system_prompt,
             messages=messages,
         ) as stream:
@@ -221,12 +235,14 @@ class QueryAgent(BaseAgent):
         answer = "".join(answer_parts)
         tokens_used = total_input_tokens + total_output_tokens
 
-        # Extract data points and sources from context
-        data_points = await self._extract_latest_data_points()
+        # Build data points only for relevant series
+        data_points = await self._extract_data_points(relevant)
         sources = self._determine_sources(data_points)
 
         logger.info(
             "llm_query_completed",
+            model=_MODEL,
+            relevant_series=relevant,
             tokens_input=total_input_tokens,
             tokens_output=total_output_tokens,
             tokens_total=tokens_used,
@@ -238,35 +254,76 @@ class QueryAgent(BaseAgent):
             sources=sources,
             tier_used=QueryTier.FULL_LLM,
             llm_tokens_used=tokens_used,
+            llm_input_tokens=total_input_tokens,
+            llm_output_tokens=total_output_tokens,
         )
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    async def _gather_context(self) -> str:
-        """Fetch latest records from all known gold series and format as text."""
+    @staticmethod
+    def _extract_relevant_series(question: str) -> list[str]:
+        """Identify which series the question is about using keyword matching.
+
+        Returns a list of series IDs. If none detected, returns all series
+        so the model has full context for open-ended questions.
+        """
+        lowered = question.lower()
+        found: set[str] = set()
+        for keyword, series_id in METRIC_KEYWORDS.items():
+            if keyword in lowered:
+                found.add(series_id)
+        # If no specific metric found, include all but with compact summaries
+        return list(found) if found else ALL_SERIES
+
+    async def _build_compact_context(self, relevant_series: list[str]) -> str:
+        """Build a token-efficient context string.
+
+        Relevant series get their last N data points.
+        Other series get a one-line summary (latest value only).
+        """
         lines: list[str] = []
+
         for series_id in ALL_SERIES:
+            label = get_display_label(series_id)
+            meta = SERIES_DISPLAY.get(series_id, {})
+            unit = meta.get("unit", "")
             rows = await query_gold_series(series_id)
+
             if not rows:
+                lines.append(f"{label} ({unit}): no data available")
                 continue
-            # Include last 30 data points for context
-            recent = rows[-30:]
-            lines.append(f"--- {series_id} ---")
-            for row in recent:
-                date_str = (
-                    row["date"].strftime("%Y-%m-%d")
-                    if isinstance(row["date"], datetime)
-                    else str(row["date"])
-                )
-                lines.append(f"  {date_str}: {row['value']}")
+
+            latest = rows[-1]
+            latest_val = latest["value"]
+            latest_date = (
+                latest["date"].strftime("%Y-%m-%d")
+                if isinstance(latest["date"], datetime)
+                else str(latest["date"])
+            )
+
+            if series_id in relevant_series:
+                # Detailed: last N data points for series the user asked about
+                recent = rows[-_MAX_CONTEXT_POINTS:]
+                lines.append(f"{label} ({unit}) — last {len(recent)} values:")
+                for row in recent:
+                    d = (
+                        row["date"].strftime("%Y-%m-%d")
+                        if isinstance(row["date"], datetime)
+                        else str(row["date"])
+                    )
+                    lines.append(f"  {d}: {row['value']}")
+            else:
+                # Compact: one-line summary for context
+                lines.append(f"{label} ({unit}): latest {latest_val} on {latest_date}")
+
         return "\n".join(lines)
 
-    async def _extract_latest_data_points(self) -> list[DataPoint]:
-        """Get the latest DataPoint for each known series (for response metadata)."""
+    async def _extract_data_points(self, relevant_series: list[str]) -> list[DataPoint]:
+        """Get the latest DataPoint for relevant series only."""
         points: list[DataPoint] = []
-        for series_id in ALL_SERIES:
+        for series_id in relevant_series:
             rows = await query_gold_series(series_id)
             if not rows:
                 continue
@@ -279,7 +336,7 @@ class QueryAgent(BaseAgent):
 
             points.append(
                 DataPoint(
-                    series=str(latest.get("series", series_id)),
+                    series=get_display_label(series_id),
                     value=float(latest["value"]),
                     date=date,
                 )
@@ -291,8 +348,14 @@ class QueryAgent(BaseAgent):
         """Derive human-readable source names from the data points present."""
         sources: set[str] = set()
         for dp in data_points:
-            if dp.series.startswith("bcb_"):
-                sources.add("Banco Central do Brasil")
-            elif dp.series.startswith("ibge_"):
-                sources.add("IBGE")
+            # Use the display label to infer source
+            for sid, meta in SERIES_DISPLAY.items():
+                if get_display_label(sid) == dp.series:
+                    if meta["source"] == "BCB":
+                        sources.add("Banco Central do Brasil")
+                    elif meta["source"] == "IBGE":
+                        sources.add("IBGE")
+                    elif meta["source"] == "Tesouro":
+                        sources.add("Tesouro Nacional")
+                    break
         return sorted(sources)
