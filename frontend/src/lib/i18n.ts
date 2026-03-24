@@ -11,7 +11,7 @@ export const translations = {
     },
     insight: {
       title: 'AI Insight Digest',
-      noData: 'No insights available yet. The InsightAgent will generate daily summaries of key economic indicators once data is available.',
+      noData: 'No insights yet. Daily summaries will show up here once data is processed.',
       poweredBy: 'Powered by',
       highConfidence: 'High confidence',
       lowConfidence: 'Low confidence',
@@ -19,7 +19,7 @@ export const translations = {
     },
     ask: {
       title: 'Ask AI',
-      subtitle: 'Ask questions about Brazilian economic indicators. Powered by Claude Sonnet with tiered query routing.',
+      subtitle: 'Ask questions about Brazilian economic data. Complex questions use Claude Sonnet.',
       placeholder: 'Ask about Brazilian economic indicators...',
       send: 'Send',
       thinking: 'Thinking...',
@@ -73,7 +73,7 @@ export const translations = {
     },
     about: {
       title: 'About BR Economic Pulse',
-      subtitle: 'An AI-augmented macroeconomic monitoring platform for Brazil',
+      subtitle: 'A macroeconomic dashboard for Brazil with AI-generated insights',
       architecture: 'Architecture',
       techStack: 'Tech Stack',
       dataSources: 'Data Sources',
@@ -82,6 +82,16 @@ export const translations = {
       aiMl: 'AI / ML',
       infrastructure: 'Infrastructure',
       author: 'Author',
+      authorBio: 'Built by Alex Monteiro. Combines data pipelines, LLM integration, and frontend development around Brazilian economic data.',
+      authorArch: 'Uses a Medallion pipeline (Bronze/Silver/Gold) with automated ingestion, quality checks, LLM-generated insights, and smart query routing.',
+    },
+    seriesHints: {
+      bcb_432: 'The benchmark interest rate set by Brazil\'s central bank. Higher SELIC tightens credit and slows inflation; lower SELIC stimulates borrowing and growth.',
+      bcb_433: 'Brazil\'s official consumer price index, measured month-over-month. Positive values mean prices are rising; above ~0.5% monthly signals strong inflationary pressure.',
+      bcb_1: 'How many Brazilian reais one US dollar buys. A rising rate means the real is weakening, making imports more expensive.',
+      ibge_pnad: 'Share of the working-age population actively looking for work but unable to find it. Measured quarterly by IBGE\'s household survey.',
+      ibge_gdp: 'Total value of goods and services produced in Brazil, in billions of reais. Used as the broadest measure of economic activity.',
+      tesouro: 'Yield on Brazilian government bonds (Tesouro Direto). Higher yields usually reflect higher perceived risk or tighter monetary policy.',
     },
     common: {
       fresh: 'Fresh',
@@ -101,7 +111,7 @@ export const translations = {
     },
     insight: {
       title: 'Resumo de IA',
-      noData: 'Nenhum resumo disponivel ainda. O InsightAgent gerara resumos diarios dos principais indicadores economicos quando os dados estiverem disponiveis.',
+      noData: 'Ainda sem resumos. Os resumos diarios aparecerao aqui quando os dados forem processados.',
       poweredBy: 'Gerado por',
       highConfidence: 'Alta confianca',
       lowConfidence: 'Baixa confianca',
@@ -109,7 +119,7 @@ export const translations = {
     },
     ask: {
       title: 'Pergunte a IA',
-      subtitle: 'Faca perguntas sobre indicadores economicos brasileiros. Desenvolvido com Claude Sonnet e roteamento de consultas em camadas.',
+      subtitle: 'Faca perguntas sobre dados economicos brasileiros. Consultas complexas usam o Claude Sonnet.',
       placeholder: 'Pergunte sobre indicadores economicos brasileiros...',
       send: 'Enviar',
       thinking: 'Pensando...',
@@ -163,7 +173,7 @@ export const translations = {
     },
     about: {
       title: 'Sobre o BR Economic Pulse',
-      subtitle: 'Uma plataforma de inteligencia macroeconomica brasileira em tempo real com insights baseados em IA',
+      subtitle: 'Um painel macroeconomico para o Brasil com insights gerados por IA',
       architecture: 'Arquitetura',
       techStack: 'Stack Tecnologico',
       dataSources: 'Fontes de Dados',
@@ -172,6 +182,16 @@ export const translations = {
       aiMl: 'IA / ML',
       infrastructure: 'Infraestrutura',
       author: 'Autor',
+      authorBio: 'Desenvolvido por Alex Monteiro. Combina pipelines de dados, integracao com LLM e desenvolvimento frontend com dados economicos brasileiros.',
+      authorArch: 'Usa o pipeline Medallion (Bronze/Silver/Gold) com ingestao automatizada, verificacoes de qualidade, insights gerados por LLM e roteamento inteligente de consultas.',
+    },
+    seriesHints: {
+      bcb_432: 'Taxa basica de juros definida pelo Banco Central. SELIC mais alta encarece o credito e freia a inflacao; mais baixa estimula emprestimos e o crescimento.',
+      bcb_433: 'Indice oficial de precos ao consumidor, medido mes a mes. Valores positivos indicam alta de precos; acima de ~0,5% ao mes sinaliza pressao inflacionaria forte.',
+      bcb_1: 'Quantos reais um dolar americano compra. Taxa em alta significa que o real esta perdendo valor, encarecendo importacoes.',
+      ibge_pnad: 'Parcela da populacao economicamente ativa que procura emprego e nao encontra. Medida trimestralmente pela PNAD do IBGE.',
+      ibge_gdp: 'Valor total de bens e servicos produzidos no Brasil, em bilhoes de reais. E a medida mais ampla da atividade economica.',
+      tesouro: 'Rentabilidade dos titulos publicos federais (Tesouro Direto). Rendimentos mais altos costumam refletir maior percepcao de risco ou politica monetaria mais apertada.',
     },
     common: {
       fresh: 'Atualizado',

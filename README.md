@@ -1,6 +1,6 @@
 # BR Economic Pulse
 
-A production-grade Brazilian macroeconomic data intelligence dashboard with a conversational AI agent layer. It fetches data from BCB, IBGE, and Tesouro Nacional, processes it through a medallion pipeline (bronze/silver/gold), and serves it via an interactive React dashboard and natural language query interface.
+A Brazilian macroeconomic data dashboard with natural-language query support. It fetches data from BCB, IBGE, and Tesouro Nacional, processes it through a medallion pipeline (bronze/silver/gold), and serves it via an interactive React dashboard and natural language query interface.
 
 ## Architecture
 

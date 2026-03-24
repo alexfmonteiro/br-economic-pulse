@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
-import { postQuery } from '@/lib/api';
+import { postQuery, getSeriesLabel } from '@/lib/api';
 import type { QueryResponse } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
 import type { Translations } from '@/lib/i18n';
@@ -39,7 +39,7 @@ function DataCitations({ response, t }: { response: QueryResponse; t: Translatio
       <div className="space-y-1">
         {response.data_points.map((dp, i) => (
           <div key={i} className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">{dp.series}</span>
+            <span className="text-slate-400">{getSeriesLabel(dp.series)}</span>
             <span className="text-slate-300 font-medium">
               {dp.value.toLocaleString('en-US', { maximumFractionDigits: 4 })}
             </span>
@@ -57,7 +57,7 @@ function DataCitations({ response, t }: { response: QueryResponse; t: Translatio
 }
 
 export function AskPage() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,7 +95,7 @@ export function AskPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await postQuery(question);
+      const response = await postQuery(question, language);
       setMessages((prev) =>
         prev.map((m) =>
           m.isLoading
@@ -148,7 +148,7 @@ export function AskPage() {
                 <button
                   key={suggestion}
                   onClick={() => setInput(suggestion)}
-                  className="block mx-auto text-sm text-brand-400 hover:text-brand-300 transition-colors"
+                  className="cursor-pointer block mx-auto text-sm text-brand-400 hover:text-brand-300 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
                 >
                   &quot;{suggestion}&quot;
                 </button>
@@ -226,7 +226,7 @@ export function AskPage() {
           <button
             type="submit"
             disabled={isSubmitting || !input.trim()}
-            className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
           >
             {t.ask.send}
           </button>

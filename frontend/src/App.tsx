@@ -12,8 +12,8 @@ function LanguageToggle() {
   return (
     <button
       onClick={() => setLanguage(language === 'en' ? 'pt' : 'en')}
-      className="ml-auto flex items-center gap-1 rounded-md border border-slate-700/50 px-2 py-1 text-xs font-medium text-slate-400 hover:text-slate-200 hover:border-slate-600 transition-colors"
-      aria-label="Toggle language"
+      className="cursor-pointer ml-auto flex items-center gap-1 rounded-md border border-slate-700/50 px-2 py-1 text-xs font-medium text-slate-400 hover:text-slate-200 hover:border-slate-600 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+      aria-label={`Switch language to ${language === 'en' ? 'Portuguese' : 'English'}`}
     >
       <span className={language === 'pt' ? 'text-slate-200 font-semibold' : ''}>PT</span>
       <span className="text-slate-600">/</span>
@@ -26,7 +26,7 @@ function NavBar() {
   const { t } = useLanguage();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+    `px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none ${
       isActive
         ? 'bg-brand-600 text-white'
         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'

@@ -158,7 +158,7 @@ export function AboutPage() {
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-slate-200">Banco Central do Brasil (BCB)</h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  SELIC rate, IPCA inflation, USD/BRL exchange rate via the SGS time series API.
+                  SELIC rate, IPCA inflation, and USD/BRL exchange rate from the BCB open data API.
                 </p>
                 <a
                   href="https://www3.bcb.gov.br/sgspub/"
@@ -177,7 +177,7 @@ export function AboutPage() {
                   Instituto Brasileiro de Geografia e Estatistica (IBGE)
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  GDP quarterly data and PNAD unemployment rate via the SIDRA API.
+                  Quarterly GDP and unemployment data from the IBGE SIDRA API.
                 </p>
                 <a
                   href="https://sidra.ibge.gov.br/"
@@ -194,7 +194,7 @@ export function AboutPage() {
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-slate-200">Tesouro Nacional</h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Tesouro Direto bond yields and pricing data.
+                  Treasury bond yields and pricing.
                 </p>
                 <a
                   href="https://www.tesourotransparente.gov.br/"
@@ -216,14 +216,10 @@ export function AboutPage() {
           </h2>
           <div>
             <p className="text-sm text-slate-300">
-              Built by Alex Monteiro as a portfolio project demonstrating
-              end-to-end data engineering, AI integration, and modern frontend
-              development with Brazilian macroeconomic data.
+              {t.about.authorBio}
             </p>
             <p className="text-xs text-slate-500 mt-3">
-              Architecture: Medallion pipeline (Bronze/Silver/Gold) with
-              automated ingestion, quality checks, AI-powered insights, and
-              tiered query routing.
+              {t.about.authorArch}
             </p>
           </div>
         </section>

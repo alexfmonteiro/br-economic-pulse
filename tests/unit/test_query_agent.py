@@ -180,7 +180,7 @@ class TestQueryAgentDirectLookup:
         assert resp is not None
         assert resp.tier_used == QueryTier.DIRECT_LOOKUP
         assert resp.llm_tokens_used == 0
-        assert "bcb_432" in resp.answer
+        assert "SELIC" in resp.answer
         assert len(resp.data_points) == 1
         assert resp.sources == ["Banco Central do Brasil"]
 

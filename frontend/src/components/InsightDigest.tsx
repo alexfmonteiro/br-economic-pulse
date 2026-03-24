@@ -1,9 +1,10 @@
 import Markdown from 'react-markdown';
 import { useInsights } from '@/hooks/useMetrics';
+import { getSeriesLabel } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
 
-function formatTimestamp(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
+function formatTimestamp(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -15,6 +16,7 @@ function formatTimestamp(iso: string): string {
 export function InsightDigest() {
   const { data, isLoading, isError } = useInsights();
   const { language, t } = useLanguage();
+  const locale = language === 'pt' ? 'pt-BR' : 'en-US';
 
   const insights = data?.insights ?? [];
   const insight = insights.find((i) => i.language === language) ?? insights.find((i) => i.language === 'en') ?? insights[0];
@@ -22,7 +24,7 @@ export function InsightDigest() {
   return (
     <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="h-2 w-2 rounded-full bg-brand-500 animate-pulse" />
+        <div className="h-2 w-2 rounded-full bg-brand-500" />
         <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
           {t.insight.title}
         </h2>
@@ -68,11 +70,11 @@ export function InsightDigest() {
               </span>
             )}
 
-            <span>{formatTimestamp(insight.generated_at)}</span>
+            <span>{formatTimestamp(insight.generated_at, locale)}</span>
 
             {insight.metric_refs.length > 0 && (
               <span className="text-slate-600">
-                {t.insight.refs}: {insight.metric_refs.join(', ')}
+                {t.insight.refs}: {insight.metric_refs.map(getSeriesLabel).join(', ')}
               </span>
             )}
           </div>

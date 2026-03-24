@@ -175,7 +175,7 @@ function SeriesFreshnessRow({ seriesId, label }: { seriesId: string; label: stri
     <div className="flex items-center justify-between py-2.5 border-b border-slate-700/30 last:border-0">
       <div className="flex items-center gap-3">
         <span className="text-sm text-slate-300 font-medium">{label}</span>
-        <span className="text-[10px] text-slate-600">{seriesId}</span>
+        <span className="text-[10px] text-slate-600 sr-only">{seriesId}</span>
       </div>
       <div className="flex items-center gap-3">
         {isLoading ? (

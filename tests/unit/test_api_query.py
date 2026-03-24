@@ -124,7 +124,7 @@ class TestPostQuery:
         data = resp.json()
         assert data["tier_used"] == "direct_lookup"
         assert data["llm_tokens_used"] == 0
-        assert "bcb_432" in data["answer"]
+        assert "SELIC" in data["answer"]
         assert "14.75" in data["answer"]
 
     @pytest.mark.asyncio

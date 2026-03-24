@@ -19,8 +19,11 @@ export function DeltaIndicator({ current, previous, unit = '' }: DeltaIndicatorP
   }
 
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-      <span>{isUp ? '\u25B2' : '\u25BC'}</span>
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-medium ${isUp ? 'text-emerald-400' : 'text-red-400'}`}
+      aria-label={`${isUp ? 'increased' : 'decreased'} by ${Math.abs(delta).toFixed(2)}`}
+    >
+      <span aria-hidden="true">{isUp ? '\u25B2' : '\u25BC'}</span>
       <span>{Math.abs(delta).toFixed(2)}{unit}</span>
       <span className="text-slate-500 ml-1">({pctChange >= 0 ? '+' : ''}{pctChange.toFixed(1)}%)</span>
     </span>

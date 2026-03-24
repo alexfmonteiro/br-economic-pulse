@@ -1,5 +1,7 @@
+import * as Tooltip from '@radix-ui/react-tooltip';
 import { useMetrics } from '@/hooks/useMetrics';
 import type { SeriesConfig, TimeRange } from '@/lib/api';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Sparkline } from './Sparkline';
 import { DeltaIndicator } from './DeltaIndicator';
 import { FreshnessBadge } from './FreshnessBadge';
@@ -15,8 +17,8 @@ function formatValue(value: number, unit: string): string {
   return `${value.toFixed(2)}${unit ? ` ${unit}` : ''}`;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -24,6 +26,9 @@ function formatDate(dateStr: string): string {
 }
 
 export function MetricCard({ config, range }: MetricCardProps) {
+  const { language, t } = useLanguage();
+  const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+  const hint = (t.seriesHints as Record<string, string>)[config.id] ?? '';
   const { data, isLoading, isError } = useMetrics(config.id, range);
 
   if (isLoading) {
@@ -57,7 +62,30 @@ export function MetricCard({ config, range }: MetricCardProps) {
   return (
     <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5 hover:border-slate-600/50 transition-colors">
       <div className="flex items-center justify-between mb-1">
-        <h3 className="text-sm font-medium text-slate-400">{config.label}</h3>
+        {hint ? (
+          <Tooltip.Provider delayDuration={300}>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <h3 className="text-sm font-medium text-slate-400 cursor-help border-b border-dotted border-slate-600">
+                  {config.label}
+                </h3>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="bottom"
+                  align="start"
+                  sideOffset={6}
+                  className="z-50 max-w-xs rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-300 leading-relaxed shadow-lg animate-in fade-in-0 zoom-in-95"
+                >
+                  {hint}
+                  <Tooltip.Arrow className="fill-slate-800" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
+        ) : (
+          <h3 className="text-sm font-medium text-slate-400">{config.label}</h3>
+        )}
         <span className="text-[10px] text-slate-600 uppercase tracking-wider">{config.source}</span>
       </div>
 
@@ -79,7 +107,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
       <div className="flex items-center justify-between mt-3">
         <FreshnessBadge lastUpdated={data.last_updated} />
         <span className="text-[10px] text-slate-600">
-          {points.length} pts {data.last_updated ? `\u00B7 ${formatDate(data.last_updated)}` : ''}
+          {points.length} pts {data.last_updated ? `\u00B7 ${formatDate(data.last_updated, locale)}` : ''}
         </span>
       </div>
     </div>

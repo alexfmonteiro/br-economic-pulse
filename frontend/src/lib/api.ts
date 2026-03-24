@@ -130,6 +130,21 @@ export interface SyncStatusResponse {
   sync_health: string;
 }
 
+// --- Series label helper ---
+
+const SERIES_LABELS: Record<string, string> = {
+  bcb_432: 'SELIC',
+  bcb_433: 'IPCA',
+  bcb_1: 'USD/BRL',
+  ibge_pnad: 'Unemployment',
+  ibge_gdp: 'GDP',
+  tesouro: 'Tesouro Direto',
+};
+
+export function getSeriesLabel(seriesId: string): string {
+  return SERIES_LABELS[seriesId] ?? seriesId;
+}
+
 // --- Fetchers ---
 
 export const fetchMetrics = (series: string, after?: string | null): Promise<MetricsResponse> => {
@@ -149,11 +164,12 @@ export const fetchInsightsLatest = (): Promise<InsightResponse> =>
 export const fetchSyncStatus = (): Promise<SyncStatusResponse> =>
   fetchJSON('/api/quality/sync-status');
 
-export async function postQuery(question: string): Promise<QueryResponse> {
+export async function postQuery(question: string, language: string = 'en'): Promise<QueryResponse> {
   const res = await fetch(`${API_BASE}/api/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question }),
+    credentials: 'include',
+    body: JSON.stringify({ question, language }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

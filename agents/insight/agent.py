@@ -15,21 +15,13 @@ import structlog
 from agents.base import BaseAgent
 from api.dependencies import query_gold_series
 from api.models import AgentResult, InsightRecord
+from api.series_config import get_all_series_ids
 from security.sanitize import sanitize_for_prompt
 from security.xml_fencing import build_insight_prompt
 
 logger = structlog.get_logger()
 
 _MODEL_VERSION = "claude-sonnet-4-20250514"
-
-_ALL_SERIES: list[str] = [
-    "bcb_432",
-    "bcb_433",
-    "bcb_1",
-    "ibge_pnad",
-    "ibge_gdp",
-    "tesouro",
-]
 
 _CREATE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS insights (
@@ -183,7 +175,8 @@ class InsightAgent(BaseAgent):
         # --- Step 1: Read gold data for all series ---
         series_data: dict[str, list[dict[str, Any]]] = {}
         total_rows = 0
-        for series in _ALL_SERIES:
+        all_series = get_all_series_ids()
+        for series in all_series:
             try:
                 rows = await query_gold_series(series)
                 series_data[series] = rows
@@ -264,7 +257,7 @@ class InsightAgent(BaseAgent):
             )
 
         # --- Step 5: Parse response into InsightRecords ---
-        metric_refs = [s for s in _ALL_SERIES if series_data.get(s)]
+        metric_refs = [s for s in all_series if series_data.get(s)]
         confidence_flag = len(anomalies) == 0
         records = _parse_insight_sections(
             raw_text, run_id, generated_at, metric_refs, confidence_flag

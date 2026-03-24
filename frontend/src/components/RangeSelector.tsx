@@ -12,7 +12,7 @@ export function RangeSelector({ value, onChange }: RangeSelectorProps) {
         <button
           key={r.value}
           onClick={() => onChange(r.value)}
-          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none ${
             value === r.value
               ? 'bg-brand-600 text-white'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'

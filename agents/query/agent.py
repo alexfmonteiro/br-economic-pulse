@@ -19,16 +19,17 @@ from api.models import (
     QueryResponse,
     QueryTier,
 )
+from api.series_config import SERIES_DISPLAY, get_display_label
 from security.sanitize import PromptInjectionError, sanitize_for_prompt
 from security.xml_fencing import build_query_prompt
 
 logger = structlog.get_logger()
 
 # Series that originate from BCB (used for source attribution).
-BCB_SERIES: set[str] = {"bcb_432", "bcb_433", "bcb_1"}
+BCB_SERIES: set[str] = {sid for sid, m in SERIES_DISPLAY.items() if m["source"] == "BCB"}
 
 # All series we know about — queried for FULL_LLM context.
-ALL_SERIES: list[str] = ["bcb_432", "bcb_433", "bcb_1", "ibge_pnad", "ibge_gdp"]
+ALL_SERIES: list[str] = list(SERIES_DISPLAY.keys())
 
 _MODEL = "claude-sonnet-4-20250514"
 
@@ -44,9 +45,11 @@ class QueryAgent(BaseAgent):
         self,
         question: str,
         history: list[dict[str, str]] | None = None,
+        language: str = "en",
     ) -> None:
         self._question = question
         self._history: list[dict[str, str]] = history or []
+        self._language = language
         self._router = QuerySkillRouter()
         self._query_response: QueryResponse | None = None
 
@@ -132,7 +135,7 @@ class QueryAgent(BaseAgent):
         else:
             date = datetime.fromisoformat(str(raw_date)).replace(tzinfo=timezone.utc)
 
-        series_name = str(latest.get("series", metric))
+        series_name = get_display_label(metric)
 
         source = (
             "Banco Central do Brasil"
@@ -140,10 +143,16 @@ class QueryAgent(BaseAgent):
             else "IBGE"
         )
 
-        answer = (
-            f"The latest value for {series_name} is {value} "
-            f"(as of {date.strftime('%Y-%m-%d')})."
-        )
+        if self._language == "pt":
+            answer = (
+                f"O valor mais recente de {series_name} e {value} "
+                f"(em {date.strftime('%d/%m/%Y')})."
+            )
+        else:
+            answer = (
+                f"The latest value for {series_name} is {value} "
+                f"(as of {date.strftime('%Y-%m-%d')})."
+            )
 
         return QueryResponse(
             answer=answer,
@@ -171,6 +180,12 @@ class QueryAgent(BaseAgent):
 
         # Build XML-fenced prompt
         system_prompt, user_message = build_query_prompt(context_data, question)
+
+        # Add language instruction
+        if self._language == "pt":
+            system_prompt += "\n\nIMPORTANT: Always respond in Brazilian Portuguese (pt-BR)."
+        else:
+            system_prompt += "\n\nIMPORTANT: Always respond in English."
 
         # Build messages list (include conversation history)
         messages: list[MessageParam] = []

@@ -39,6 +39,7 @@ from api.models import (
     SyncStatusResponse,
 )
 from api.rate_limiter import check_rate_limit, get_remaining_queries
+from api.series_config import SERIES_DISPLAY
 
 logger = structlog.get_logger()
 
@@ -137,6 +138,15 @@ async def health() -> HealthResponse:
     )
 
 
+@app.get("/api/series")
+async def list_series() -> list[dict[str, str]]:
+    """Return display metadata for all tracked series."""
+    return [
+        {"id": sid, **meta}
+        for sid, meta in SERIES_DISPLAY.items()
+    ]
+
+
 @app.get("/api/metrics/{series}")
 async def get_metrics(series: str, after: str | None = None) -> MetricsResponse:
     rows = await query_gold_series(series, after=after)
@@ -217,7 +227,7 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
     # Build agent with conversation history
     session_id = _get_session_id(request)
     history = _get_history(session_id)
-    agent = QueryAgent(question=body.question, history=history)
+    agent = QueryAgent(question=body.question, history=history, language=body.language)
 
     # Execute with 30s timeout
     try:
@@ -279,7 +289,7 @@ async def query_stream(
     history = _get_history(session_id)
 
     async def _event_generator() -> AsyncGenerator[str, None]:
-        agent = QueryAgent(question=body.question, history=history)
+        agent = QueryAgent(question=body.question, history=history, language=body.language)
 
         try:
             result = await asyncio.wait_for(agent.run(), timeout=30.0)

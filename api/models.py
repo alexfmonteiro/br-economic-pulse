@@ -314,6 +314,7 @@ class QueryRequest(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
 
     question: str = Field(..., max_length=500)
+    language: str = "en"
 
 
 class QueryResponse(BaseModel):
