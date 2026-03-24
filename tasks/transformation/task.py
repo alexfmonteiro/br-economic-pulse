@@ -48,6 +48,13 @@ class TransformationTask(BaseTask):
         for feed_id, feed in self._feed_configs.items():
             if feed.bronze_source and feed.bronze_source in bronze_set:
                 series_set.add(feed_id)
+
+        # Exclude ingestion-only parents (feeds that serve as bronze_source for others)
+        bronze_source_parents = {
+            feed.bronze_source for feed in self._feed_configs.values() if feed.bronze_source
+        }
+        series_set -= bronze_source_parents
+
         return sorted(series_set)
 
     async def _execute(self) -> TaskResult:
