@@ -10,7 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import structlog
 
-from api.models import FeedConfig, SilverProcessingType, SilverWatermark, TaskResult
+from api.models import FeedConfig, SeriesReconciliation, SilverProcessingType, SilverWatermark, TaskResult
 from storage.protocol import StorageBackend
 from tasks.base import BaseTask
 
@@ -61,6 +61,7 @@ class TransformationTask(BaseTask):
         total_rows = 0
         warnings: list[str] = []
         errors: list[str] = []
+        reconciliation: list[SeriesReconciliation] = []
         any_success = False
 
         series_list = await self._discover_series()
@@ -74,8 +75,9 @@ class TransformationTask(BaseTask):
 
         for series in series_list:
             try:
-                rows = await self._transform_series(series)
+                rows, recon = await self._transform_series(series)
                 total_rows += rows
+                reconciliation.append(recon)
                 any_success = True
             except Exception as exc:
                 msg = f"Transform {series} failed: {exc}"
@@ -92,6 +94,7 @@ class TransformationTask(BaseTask):
             rows_processed=total_rows,
             warnings=warnings,
             errors=errors,
+            series_reconciliation=reconciliation,
         )
 
     async def _read_watermark(self, series: str) -> SilverWatermark | None:
@@ -205,7 +208,7 @@ class TransformationTask(BaseTask):
 
         return base_sql
 
-    async def _transform_series(self, series: str) -> int:
+    async def _transform_series(self, series: str) -> tuple[int, SeriesReconciliation]:
         """Transform a single series from bronze -> silver -> gold."""
         feed = self._feed_configs.get(series)
         if feed is None:
@@ -296,7 +299,14 @@ class TransformationTask(BaseTask):
             new_bronze_files=len(new_keys),
             silver_key=silver_key,
         )
-        return row_count
+
+        recon = SeriesReconciliation(
+            series_id=series,
+            rows_in=total_bronze_rows,
+            rows_out=valid_silver_rows,
+            rows_quarantined=quarantined_count,
+        )
+        return row_count, recon
 
     def _merge_silver(
         self,

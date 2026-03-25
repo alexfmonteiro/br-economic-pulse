@@ -1,7 +1,6 @@
 import { SERIES } from '@/lib/api';
-import { useHealth, useMetrics, useSyncStatus, useQualityLatest } from '@/hooks/useMetrics';
-import { FreshnessBadge } from '@/components/FreshnessBadge';
-import type { TimeRange } from '@/lib/api';
+import type { SeriesFreshnessData } from '@/lib/api';
+import { useHealth, useSyncStatus, useQualityLatest } from '@/hooks/useMetrics';
 import { useLanguage } from '@/lib/LanguageContext';
 
 function formatTimestamp(iso: string | null): string {
@@ -155,7 +154,29 @@ function QualityStatusPanel() {
         </div>
       </div>
 
-      {data.last_sync && (
+      {data.report && (
+        <div className="mt-4 pt-3 border-t border-slate-700/30">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-emerald-400 text-xs font-medium">
+              {data.report.checks.filter(c => c.passed).length} passed
+            </span>
+            {data.report.checks.filter(c => !c.passed).length > 0 && (
+              <span className="text-red-400 text-xs font-medium">
+                {data.report.checks.filter(c => !c.passed).length} failed
+              </span>
+            )}
+          </div>
+          {data.report.critical_failures.length > 0 && (
+            <div className="text-xs text-red-400/80 space-y-0.5">
+              {data.report.critical_failures.map((f, i) => (
+                <p key={i}>{f}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {data.last_sync && !data.report && (
         <p className="text-[10px] text-slate-600 mt-3">
           {t.quality.filesSynced}: {data.last_sync.files_synced}
           {data.last_sync.run_id && ` | ${t.quality.runId}: ${data.last_sync.run_id}`}
@@ -165,29 +186,95 @@ function QualityStatusPanel() {
   );
 }
 
-const FRESHNESS_RANGE: TimeRange = 'ALL';
+function formatShortDate(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
 
-function SeriesFreshnessRow({ seriesId, label, freshnessHours }: { seriesId: string; label: string; freshnessHours: number }) {
-  const { data, isLoading } = useMetrics(seriesId, FRESHNESS_RANGE);
-  const { t } = useLanguage();
+function formatShortTimestamp(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  fresh: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  stale: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  critical: 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+
+function SeriesFreshnessRow({ label, freshness }: { label: string; freshness: SeriesFreshnessData }) {
+  const badgeColor = STATUS_COLORS[freshness.status] ?? STATUS_COLORS.critical;
 
   return (
     <div className="flex items-center justify-between py-2.5 border-b border-slate-700/30 last:border-0">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-slate-300 font-medium">{label}</span>
-        <span className="text-[10px] text-slate-600 sr-only">{seriesId}</span>
+      <span className="text-sm text-slate-300 font-medium">{label}</span>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <p className="text-[10px] text-slate-500 uppercase">Latest data</p>
+          <p className="text-xs text-slate-400">{formatShortDate(freshness.last_updated)}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] text-slate-500 uppercase">Last ingested</p>
+          <p className="text-xs text-slate-400">{formatShortTimestamp(freshness.last_ingested_at)}</p>
+        </div>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${badgeColor}`}
+        >
+          {freshness.status}
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        {isLoading ? (
-          <div className="h-5 w-16 rounded bg-slate-700 animate-pulse" />
-        ) : (
-          <>
-            <span className="text-[10px] text-slate-500">
-              {data?.data_points.length ?? 0} {t.analytics.points}
-            </span>
-            <FreshnessBadge lastUpdated={data?.last_updated ?? null} freshnessHours={freshnessHours} />
-          </>
-        )}
+    </div>
+  );
+}
+
+function SeriesFreshnessPanel() {
+  const { data, isLoading, isError } = useQualityLatest();
+  const { t } = useLanguage();
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6 animate-pulse">
+        <div className="h-4 w-32 rounded bg-slate-700 mb-4" />
+        <div className="h-40 rounded bg-slate-700" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+          {t.quality.seriesFreshness}
+        </h3>
+        <p className="text-sm text-slate-500">Unable to load freshness data</p>
+      </div>
+    );
+  }
+
+  // Build lookup from API freshness data
+  const freshnessMap = new Map(data.series_freshness.map(f => [f.series, f]));
+
+  return (
+    <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
+      <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+        {t.quality.seriesFreshness}
+      </h3>
+      <div>
+        {SERIES.map((s) => {
+          const freshness = freshnessMap.get(s.id);
+          if (!freshness) return null;
+          const label = (t.seriesLabels as Record<string, string>)[s.id] ?? s.label;
+          return <SeriesFreshnessRow key={s.id} label={label} freshness={freshness} />;
+        })}
       </div>
     </div>
   );
@@ -249,16 +336,7 @@ export function QualityPage() {
         </div>
 
         {/* Per-series freshness */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
-            {t.quality.seriesFreshness}
-          </h3>
-          <div>
-            {SERIES.map((s) => (
-              <SeriesFreshnessRow key={s.id} seriesId={s.id} label={(t.seriesLabels as Record<string, string>)[s.id] ?? s.label} freshnessHours={s.freshnessHours} />
-            ))}
-          </div>
-        </div>
+        <SeriesFreshnessPanel />
 
         {/* Data freshness from health endpoint */}
         {health?.data_freshness && Object.keys(health.data_freshness).length > 0 && (

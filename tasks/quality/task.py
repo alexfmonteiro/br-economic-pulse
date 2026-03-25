@@ -15,6 +15,7 @@ from api.models import (
     QualityCheckResult,
     QualityLevel,
     QualityReport,
+    SeriesReconciliation,
     TaskResult,
 )
 from storage.protocol import StorageBackend
@@ -114,6 +115,27 @@ class QualityTask(BaseTask):
             failed_checks=len(failed_checks),
         )
 
+        # Build per-series reconciliation from check names
+        series_checks: dict[str, tuple[int, int]] = {}  # series -> (total, passed)
+        for c in checks:
+            # Try to find a known series_id in the check name
+            series_id = "unknown"
+            for feed_id in (self._feed_configs or {}):
+                if feed_id in c.check_name:
+                    series_id = feed_id
+                    break
+            total, passed = series_checks.get(series_id, (0, 0))
+            series_checks[series_id] = (total + 1, passed + (1 if c.passed else 0))
+
+        reconciliation = [
+            SeriesReconciliation(
+                series_id=sid,
+                rows_in=total,
+                rows_out=passed,
+            )
+            for sid, (total, passed) in series_checks.items()
+        ]
+
         return TaskResult(
             success=success,
             task_name=self.task_name,
@@ -125,6 +147,7 @@ class QualityTask(BaseTask):
                 if not c.check_name.startswith("critical_")
             ],
             errors=critical_failures,
+            series_reconciliation=reconciliation,
         )
 
     async def _check_bronze(self) -> list[QualityCheckResult]:

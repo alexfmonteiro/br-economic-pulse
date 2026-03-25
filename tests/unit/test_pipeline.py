@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 import pytest
 
-from api.models import AgentResult, TaskResult
+from api.models import AgentResult, RunManifest, TaskResult
 from pipeline.flow import PipelineFlow
 from agents.base import BaseAgent
+from storage.local import LocalStorageBackend
 from tasks.base import BaseTask
 
 
@@ -113,3 +115,55 @@ async def test_pipeline_run_id_generated() -> None:
 
     assert result.run_id.startswith("pipeline-")
     assert len(result.run_id) > len("pipeline-")
+
+
+@pytest.mark.asyncio
+async def test_pipeline_writes_manifest(tmp_path: Path) -> None:
+    """Pipeline with storage writes manifest.json to runs/{run_id}/."""
+    storage = LocalStorageBackend(tmp_path)
+    flow = PipelineFlow(storage=storage, trigger="local")
+    result = await flow.run([MockTask("task_1"), MockAgent("agent_1")])
+
+    manifest_key = f"runs/{result.run_id}/manifest.json"
+    assert await storage.exists(manifest_key)
+
+    raw = await storage.read(manifest_key)
+    manifest = RunManifest.model_validate_json(raw)
+    assert manifest.run_id == result.run_id
+    assert manifest.status == "success"
+    assert manifest.trigger == "local"
+    assert len(manifest.stages) == 2
+    assert manifest.stages[0].stage_name == "task_1"
+    assert manifest.stages[0].rows_written == 10
+    assert manifest.stages[1].stage_name == "agent_1"
+
+
+@pytest.mark.asyncio
+async def test_pipeline_manifest_on_failure(tmp_path: Path) -> None:
+    """Pipeline failure still writes manifest with status 'partial'."""
+    storage = LocalStorageBackend(tmp_path)
+    flow = PipelineFlow(storage=storage)
+    result = await flow.run([
+        MockTask("task_1"),
+        MockTask("task_2", should_fail=True),
+        MockTask("task_3"),
+    ])
+
+    manifest_key = f"runs/{result.run_id}/manifest.json"
+    assert await storage.exists(manifest_key)
+
+    raw = await storage.read(manifest_key)
+    manifest = RunManifest.model_validate_json(raw)
+    assert manifest.status == "partial"
+    # task_1 succeeded, task_2 exception, task_3 never ran
+    assert len(manifest.stages) == 2
+    assert manifest.stages[1].stage_name == "task_2"
+    assert len(manifest.stages[1].errors) > 0
+
+
+@pytest.mark.asyncio
+async def test_pipeline_no_storage_no_crash() -> None:
+    """Pipeline without storage should still work (backward compat)."""
+    flow = PipelineFlow()  # no storage
+    result = await flow.run([MockTask("task_1")])
+    assert result.success is True

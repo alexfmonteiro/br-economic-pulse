@@ -13,7 +13,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import structlog
 
-from api.models import FeedConfig, SourceFormat, TaskResult
+from api.models import FeedConfig, SeriesReconciliation, SourceFormat, TaskResult
 from pipeline.feed_config import compute_schema_hash
 from storage.protocol import StorageBackend
 from tasks.base import BaseTask
@@ -73,6 +73,7 @@ class IngestionTask(BaseTask):
         total_rows = 0
         warnings: list[str] = []
         errors: list[str] = []
+        reconciliation: list[SeriesReconciliation] = []
         owns_client = self._http_client is None
         timeout = 120.0 if self._backfill else 60.0
         client = self._http_client or httpx.AsyncClient(timeout=timeout)
@@ -83,8 +84,9 @@ class IngestionTask(BaseTask):
                 if feed.bronze_source:
                     continue
                 try:
-                    rows = await self._fetch_feed(client, feed)
+                    rows, recon = await self._fetch_feed(client, feed)
                     total_rows += rows
+                    reconciliation.append(recon)
                 except Exception as exc:
                     msg = f"{feed_id} failed: {exc}"
                     warnings.append(msg)
@@ -108,9 +110,10 @@ class IngestionTask(BaseTask):
             rows_processed=total_rows,
             warnings=warnings,
             errors=errors,
+            series_reconciliation=reconciliation,
         )
 
-    async def _fetch_feed(self, client: Any, feed: FeedConfig) -> int:
+    async def _fetch_feed(self, client: Any, feed: FeedConfig) -> tuple[int, SeriesReconciliation]:
         """Fetch data from a single feed source and write to bronze."""
         if self._backfill and feed.source.backfill_url and feed.source.backfill_window_years and feed.source.backfill_start_date:
             return await self._fetch_windowed(client, feed)
@@ -128,7 +131,7 @@ class IngestionTask(BaseTask):
 
         return await self._write_bronze(raw_records, feed)
 
-    async def _fetch_windowed(self, client: Any, feed: FeedConfig) -> int:
+    async def _fetch_windowed(self, client: Any, feed: FeedConfig) -> tuple[int, SeriesReconciliation]:
         """Fetch data in date windows for APIs with range limits (BCB)."""
         assert feed.source.backfill_url is not None
         assert feed.source.backfill_start_date is not None
@@ -208,7 +211,7 @@ class IngestionTask(BaseTask):
 
     async def _write_bronze(
         self, raw_records: list[dict[str, Any]], feed: FeedConfig
-    ) -> int:
+    ) -> tuple[int, SeriesReconciliation]:
         """Build bronze records and write to storage."""
         bronze_records = self._build_bronze_records(raw_records, feed)
         parquet_bytes = self._to_parquet(bronze_records, feed.feed_id)
@@ -217,14 +220,28 @@ class IngestionTask(BaseTask):
         key = f"bronze/{feed.feed_id}/{timestamp}.parquet"
         await self._storage.write(key, parquet_bytes)
 
+        # Count rescued records
+        rescued_col = feed.processing.bronze.rescued_data_column
+        rows_rescued = sum(
+            1 for r in bronze_records if r.get(rescued_col) is not None
+        )
+
         logger.info(
             "ingestion_feed_complete",
             feed_id=feed.feed_id,
             rows_fetched=len(bronze_records),
+            rows_rescued=rows_rescued,
             key=key,
             backfill=self._backfill,
         )
-        return len(bronze_records)
+
+        recon = SeriesReconciliation(
+            series_id=feed.feed_id,
+            rows_in=len(raw_records),
+            rows_out=len(bronze_records),
+            rows_rescued=rows_rescued,
+        )
+        return len(bronze_records), recon
 
     def _parse_response(
         self, response: Any, feed: FeedConfig

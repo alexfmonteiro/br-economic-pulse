@@ -22,9 +22,14 @@ from fastapi.responses import StreamingResponse
 
 from agents.query.agent import QueryAgent
 from api.dependencies import (
+    compute_series_freshness,
     get_gold_dir,
     get_sync_health,
     query_gold_series,
+    read_latest_quality_report,
+    read_quality_history,
+    read_run_history,
+    read_run_manifest,
     read_sync_metadata,
     verify_sync_token,
 )
@@ -34,9 +39,14 @@ from api.models import (
     InsightResponse,
     MetricDataPoint,
     MetricsResponse,
+    QualityHistoryResponse,
+    QualityLatestResponse,
+    QualityLevel,
     QueryRequest,
     QueryResponse,
     QueryTier,
+    RunHistoryResponse,
+    RunManifest,
     SyncResult,
     SyncStatusResponse,
 )
@@ -192,16 +202,39 @@ async def get_metrics(series: str, after: str | None = None) -> MetricsResponse:
 
 
 @app.get("/api/quality/latest")
-async def quality_latest() -> dict[str, Any]:
+async def quality_latest() -> QualityLatestResponse:
     """Return the latest quality report if available."""
     sync_info = read_sync_metadata()
     sync_health = get_sync_health(sync_info)
+    report = await read_latest_quality_report()
 
-    return {
-        "status": "ok",
-        "sync_health": sync_health.value,
-        "last_sync": sync_info.model_dump() if sync_info else None,
-    }
+    # Map overall_status to simple status string
+    if report is None:
+        status = "ok"
+    elif report.overall_status == QualityLevel.PASSED:
+        status = "ok"
+    elif report.overall_status == QualityLevel.WARNING:
+        status = "degraded"
+    else:
+        status = "critical"
+
+    freshness = await compute_series_freshness()
+
+    return QualityLatestResponse(
+        status=status,
+        sync_health=sync_health.value,
+        last_sync=sync_info,
+        report=report,
+        series_freshness=freshness,
+    )
+
+
+@app.get("/api/quality/history")
+async def quality_history(limit: int = 20) -> QualityHistoryResponse:
+    """Return past quality reports, most recent first."""
+    limit = min(limit, 100)
+    reports = await read_quality_history(limit=limit)
+    return QualityHistoryResponse(reports=reports, total=len(reports))
 
 
 @app.get("/api/quality/sync-status")
@@ -227,6 +260,25 @@ async def sync_status() -> SyncStatusResponse:
     )
 
 
+@app.get("/api/runs")
+async def list_runs(limit: int = 20) -> RunHistoryResponse:
+    """Return recent pipeline run manifests."""
+    limit = min(limit, 100)
+    runs = await read_run_history(limit=limit)
+    return RunHistoryResponse(runs=runs, total=len(runs))
+
+
+@app.get("/api/runs/{run_id}")
+async def get_run(run_id: str) -> RunManifest:
+    """Return a single pipeline run manifest."""
+    if "/" in run_id or ".." in run_id:
+        raise HTTPException(status_code=400, detail="Invalid run_id")
+    manifest = await read_run_manifest(run_id)
+    if manifest is None:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    return manifest
+
+
 @app.post("/api/query")
 async def post_query(body: QueryRequest, request: Request, response: Response) -> QueryResponse:
     """Answer a user question about Brazilian economic data."""
@@ -242,6 +294,14 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
             status_code=429,
             detail="Rate limit exceeded (10 requests/day). Try again tomorrow.",
         )
+
+    # Check cache before creating agent
+    from api.query_cache import get_cached_response, set_cached_response
+
+    cached = await get_cached_response(body.question, body.language)
+    if cached is not None:
+        log.info("query_cache_hit", tier=cached.tier_used.value)
+        return cached
 
     # Build agent with conversation history
     session_id = _get_session_id(request)
@@ -286,7 +346,13 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
         "query_completed",
         tier=query_resp.tier_used.value,
         tokens=query_resp.llm_tokens_used,
+        duration_ms=result.duration_ms,
+        cache_hit=False,
     )
+
+    # Cache FULL_LLM responses (fire-and-forget)
+    if query_resp.tier_used == QueryTier.FULL_LLM:
+        asyncio.ensure_future(set_cached_response(body.question, body.language, query_resp))
 
     # Fire-and-forget audit logging (don't block the response)
     asyncio.ensure_future(log_query(
@@ -322,6 +388,30 @@ async def query_stream(
             status_code=429,
             detail="Rate limit exceeded (10 requests/day). Try again tomorrow.",
         )
+
+    # Check cache before streaming
+    from api.query_cache import get_cached_response, set_cached_response
+
+    cached = await get_cached_response(body.question, body.language)
+    if cached is not None:
+        log.info("stream_query_cache_hit", tier=cached.tier_used.value)
+
+        async def _cached_generator() -> AsyncGenerator[str, None]:
+            words = cached.answer.split(" ")
+            chunk_size = 8
+            for i in range(0, len(words), chunk_size):
+                chunk_text = " ".join(words[i : i + chunk_size])
+                if i > 0:
+                    chunk_text = " " + chunk_text
+                yield f"data: {json.dumps({'chunk': chunk_text})}\n\n"
+            done_payload = json.dumps({
+                "done": True,
+                "tier_used": cached.tier_used.value,
+                "llm_tokens_used": cached.llm_tokens_used,
+            })
+            yield f"data: {done_payload}\n\n"
+
+        return StreamingResponse(_cached_generator(), media_type="text/event-stream")
 
     session_id = _get_session_id(request)
     history = _get_history(session_id)
@@ -389,7 +479,12 @@ async def query_stream(
             "stream_query_completed",
             tier=qr.tier_used.value,
             tokens=qr.llm_tokens_used,
+            duration_ms=result.duration_ms,
         )
+
+        # Cache FULL_LLM responses (fire-and-forget)
+        if qr.tier_used == QueryTier.FULL_LLM:
+            asyncio.ensure_future(set_cached_response(body.question, body.language, qr))
 
     return StreamingResponse(
         _event_generator(),

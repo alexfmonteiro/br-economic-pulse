@@ -45,3 +45,4 @@ infra/terraform/.terraform.lock.hcl
 # OS
 .DS_Store
 Thumbs.db
+infra/terraform/terraform.tfstate.1774464677.backup

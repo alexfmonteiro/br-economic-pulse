@@ -31,6 +31,32 @@ export interface HealthResponse {
   data_freshness: Record<string, string>;
 }
 
+export interface QualityCheckResult {
+  check_name: string;
+  passed: boolean;
+  metric_value: number | null;
+  threshold: number | null;
+  message: string;
+}
+
+export interface SeriesFreshnessData {
+  series: string;
+  last_updated: string | null;
+  status: string;
+  hours_since_update: number | null;
+  last_ingested_at: string | null;
+}
+
+export interface QualityReportData {
+  run_id: string;
+  stage: string;
+  timestamp: string;
+  overall_status: string;
+  checks: QualityCheckResult[];
+  series_freshness: SeriesFreshnessData[];
+  critical_failures: string[];
+}
+
 export interface QualityLatest {
   status: string;
   sync_health: string;
@@ -39,6 +65,8 @@ export interface QualityLatest {
     run_id: string | null;
     files_synced: number;
   } | null;
+  report: QualityReportData | null;
+  series_freshness: SeriesFreshnessData[];
 }
 
 // --- Time Ranges ---
@@ -198,6 +226,41 @@ export interface SeriesConfig {
   freshnessHours: number;
 }
 
+// --- Run History types ---
+
+export interface SeriesReconciliation {
+  series_id: string;
+  rows_in: number;
+  rows_out: number;
+  rows_quarantined: number;
+  rows_rescued: number;
+}
+
+export interface StageDetail {
+  stage_name: string;
+  duration_ms: number;
+  rows_read: number;
+  rows_written: number;
+  rows_quarantined: number;
+  rows_rescued: number;
+  errors: string[];
+  series_reconciliation: SeriesReconciliation[];
+}
+
+export interface RunManifest {
+  run_id: string;
+  started_at: string;
+  finished_at: string;
+  status: string;
+  trigger: string;
+  stages: StageDetail[];
+}
+
+export interface RunHistoryResponse {
+  runs: RunManifest[];
+  total: number;
+}
+
 export const SERIES: SeriesConfig[] = [
   { id: 'bcb_432', label: 'SELIC', unit: '% a.a.', source: 'BCB', color: '#3b82f6', freshnessHours: 72 },
   { id: 'bcb_433', label: 'IPCA', unit: '% a.m.', source: 'BCB', color: '#8b5cf6', freshnessHours: 1080 },
@@ -208,3 +271,11 @@ export const SERIES: SeriesConfig[] = [
   { id: 'tesouro_prefixado_longo', label: 'Prefixado Longo', unit: '% a.a.', source: 'Tesouro', color: '#f472b6', freshnessHours: 72 },
   { id: 'tesouro_ipca', label: 'Juros Real (IPCA+)', unit: '% a.a.', source: 'Tesouro', color: '#fb923c', freshnessHours: 72 },
 ];
+
+// --- Run History Fetchers ---
+
+export const fetchRunHistory = (limit?: number): Promise<RunHistoryResponse> =>
+  fetchJSON(`/api/runs${limit ? `?limit=${limit}` : ''}`);
+
+export const fetchRunDetail = (runId: string): Promise<RunManifest> =>
+  fetchJSON(`/api/runs/${runId}`);

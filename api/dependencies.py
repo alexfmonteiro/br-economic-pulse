@@ -15,7 +15,7 @@ import pyarrow.parquet as pq
 import structlog
 from fastapi import Header, HTTPException
 
-from api.models import FreshnessStatus, SyncInfo
+from api.models import FreshnessStatus, QualityReport, RunManifest, SeriesFreshness, SyncInfo
 
 logger = structlog.get_logger()
 
@@ -140,3 +140,164 @@ async def query_gold_series(series: str, after: str | None = None) -> list[dict[
     if data is None:
         return []
     return _query_parquet_bytes(data, after)
+
+
+# --- Quality report reading ---
+
+
+async def _read_all_quality_reports() -> list[QualityReport]:
+    """Read all quality reports from storage."""
+    from storage import get_storage_backend
+
+    storage = get_storage_backend()
+    try:
+        keys = await storage.list_keys("quality")
+    except Exception as exc:
+        logger.warning("quality_list_keys_error", error=str(exc))
+        return []
+
+    reports: list[QualityReport] = []
+    for key in keys:
+        if not key.endswith("report.json"):
+            continue
+        try:
+            data = await storage.read(key)
+            report = QualityReport.model_validate_json(data)
+            reports.append(report)
+        except Exception as exc:
+            logger.warning("quality_report_parse_error", key=key, error=str(exc))
+            continue
+
+    return reports
+
+
+async def _read_watermark_timestamp(series_id: str) -> datetime | None:
+    """Read the last_processed_at from a series watermark file."""
+    from api.models import SilverWatermark
+    from storage import get_storage_backend
+
+    storage = get_storage_backend()
+    wm_key = f"silver/{series_id}/_watermark.json"
+    try:
+        if not await storage.exists(wm_key):
+            return None
+        data = await storage.read(wm_key)
+        wm = SilverWatermark.model_validate_json(data)
+        return wm.last_processed_at
+    except Exception:
+        return None
+
+
+async def compute_series_freshness() -> list[SeriesFreshness]:
+    """Compute freshness for all tracked series based on gold data timestamps and ingestion watermarks."""
+    from api.series_config import SERIES_DISPLAY
+
+    results: list[SeriesFreshness] = []
+    now = datetime.now(timezone.utc)
+
+    for series_id, config in SERIES_DISPLAY.items():
+        threshold_hours = float(config["freshness_hours"])
+        rows = await query_gold_series(series_id)
+        last_ingested_at = await _read_watermark_timestamp(series_id)
+
+        if not rows:
+            results.append(SeriesFreshness(
+                series=series_id,
+                last_updated=None,
+                status=FreshnessStatus.CRITICAL,
+                hours_since_update=None,
+                last_ingested_at=last_ingested_at,
+            ))
+            continue
+
+        # Rows are sorted ascending by date; last row is most recent
+        last_row = rows[-1]
+        last_date = last_row["date"]
+
+        # Handle both datetime and date objects
+        if isinstance(last_date, datetime):
+            if last_date.tzinfo is None:
+                last_date = last_date.replace(tzinfo=timezone.utc)
+        else:
+            # It's a date object — convert to datetime at midnight UTC
+            last_date = datetime(last_date.year, last_date.month, last_date.day, tzinfo=timezone.utc)
+
+        hours_since = (now - last_date).total_seconds() / 3600
+
+        if hours_since < threshold_hours:
+            status = FreshnessStatus.FRESH
+        elif hours_since < threshold_hours * 2:
+            status = FreshnessStatus.STALE
+        else:
+            status = FreshnessStatus.CRITICAL
+
+        results.append(SeriesFreshness(
+            series=series_id,
+            last_updated=last_date,
+            status=status,
+            hours_since_update=round(hours_since, 1),
+            last_ingested_at=last_ingested_at,
+        ))
+
+    return results
+
+
+async def read_latest_quality_report() -> QualityReport | None:
+    """Return the most recent quality report from storage, or None."""
+    reports = await _read_all_quality_reports()
+    if not reports:
+        return None
+    return max(reports, key=lambda r: r.timestamp)
+
+
+async def read_quality_history(limit: int = 20) -> list[QualityReport]:
+    """Return quality reports sorted by timestamp descending."""
+    reports = await _read_all_quality_reports()
+    reports.sort(key=lambda r: r.timestamp, reverse=True)
+    return reports[:limit]
+
+
+# --- Run history reading ---
+
+
+async def read_run_history(limit: int = 20) -> list[RunManifest]:
+    """Read all run manifests from storage, sorted by started_at desc."""
+    from storage import get_storage_backend
+
+    storage = get_storage_backend()
+    try:
+        keys = await storage.list_keys("runs")
+    except Exception as exc:
+        logger.warning("runs_list_keys_error", error=str(exc))
+        return []
+
+    manifests: list[RunManifest] = []
+    for key in keys:
+        if not key.endswith("manifest.json"):
+            continue
+        try:
+            data = await storage.read(key)
+            manifest = RunManifest.model_validate_json(data)
+            manifests.append(manifest)
+        except Exception as exc:
+            logger.warning("run_manifest_parse_error", key=key, error=str(exc))
+            continue
+
+    manifests.sort(key=lambda m: m.started_at, reverse=True)
+    return manifests[:limit]
+
+
+async def read_run_manifest(run_id: str) -> RunManifest | None:
+    """Read a specific run manifest by run_id."""
+    from storage import get_storage_backend
+
+    storage = get_storage_backend()
+    key = f"runs/{run_id}/manifest.json"
+    try:
+        if not await storage.exists(key):
+            return None
+        data = await storage.read(key)
+        return RunManifest.model_validate_json(data)
+    except Exception as exc:
+        logger.warning("run_manifest_read_error", run_id=run_id, error=str(exc))
+        return None

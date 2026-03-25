@@ -35,6 +35,19 @@ class PipelineStage(str, Enum):
     POST_TRANSFORMATION = "post_transformation"
 
 
+# --- Reconciliation ---
+
+
+class SeriesReconciliation(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    series_id: str
+    rows_in: int = 0
+    rows_out: int = 0
+    rows_quarantined: int = 0
+    rows_rescued: int = 0
+
+
 # --- Task / Agent Result Models ---
 
 
@@ -47,6 +60,7 @@ class TaskResult(BaseModel):
     rows_processed: int = 0
     errors: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    series_reconciliation: list[SeriesReconciliation] = Field(default_factory=list)
 
 
 class AgentResult(BaseModel):
@@ -80,6 +94,7 @@ class SeriesFreshness(BaseModel):
     last_updated: datetime | None = None
     status: FreshnessStatus = FreshnessStatus.CRITICAL
     hours_since_update: float | None = None
+    last_ingested_at: datetime | None = None
 
 
 class QualityReport(BaseModel):
@@ -92,6 +107,23 @@ class QualityReport(BaseModel):
     checks: list[QualityCheckResult] = Field(default_factory=list)
     series_freshness: list[SeriesFreshness] = Field(default_factory=list)
     critical_failures: list[str] = Field(default_factory=list)
+
+
+class QualityLatestResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    status: str
+    sync_health: str
+    last_sync: SyncInfo | None = None
+    report: QualityReport | None = None
+    series_freshness: list[SeriesFreshness] = Field(default_factory=list)
+
+
+class QualityHistoryResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    reports: list[QualityReport] = Field(default_factory=list)
+    total: int = 0
 
 
 # --- API Response Models ---
@@ -158,6 +190,37 @@ class SyncResult(BaseModel):
 
 
 # --- Pipeline Models ---
+
+
+class StageDetail(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    stage_name: str
+    duration_ms: float = 0.0
+    rows_read: int = 0
+    rows_written: int = 0
+    rows_quarantined: int = 0
+    rows_rescued: int = 0
+    errors: list[str] = Field(default_factory=list)
+    series_reconciliation: list[SeriesReconciliation] = Field(default_factory=list)
+
+
+class RunManifest(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    run_id: str
+    started_at: datetime
+    finished_at: datetime
+    status: str  # "success" | "failed" | "partial"
+    trigger: str = "local"
+    stages: list[StageDetail] = Field(default_factory=list)
+
+
+class RunHistoryResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    runs: list[RunManifest] = Field(default_factory=list)
+    total: int = 0
 
 
 class PipelineRunResult(BaseModel):
@@ -366,5 +429,6 @@ class SilverWatermark(BaseModel):
     last_processed_at: datetime
 
 
-# Rebuild HealthResponse to resolve forward reference
+# Rebuild models with forward references
 HealthResponse.model_rebuild()
+QualityLatestResponse.model_rebuild()

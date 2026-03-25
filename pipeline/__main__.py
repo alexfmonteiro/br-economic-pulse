@@ -64,7 +64,7 @@ async def main() -> int:
         InsightAgent(),
     ]
 
-    flow = PipelineFlow()
+    flow = PipelineFlow(storage=storage, trigger="local")
     result = await flow.run(stages)
 
     print(f"\nPipeline run: {result.run_id}")
