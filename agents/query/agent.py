@@ -83,9 +83,19 @@ class QueryAgent(BaseAgent):
             sanitized = sanitize_for_prompt(self._question)
         except PromptInjectionError as exc:
             logger.warning("prompt_injection_blocked", error=str(exc))
+            safety_msg = (
+                "Sua pergunta foi bloqueada pelo nosso filtro de segurança. "
+                "Meu escopo é **exclusivamente análise de dados econômicos brasileiros**. "
+                "Por favor, reformule sua pergunta sobre indicadores como SELIC, IPCA, "
+                "câmbio, PIB ou desemprego."
+                if self._language == "pt"
+                else "Your question was blocked by our safety filter. "
+                "My scope is **exclusively Brazilian economic data analysis**. "
+                "Please rephrase your question about indicators such as SELIC, IPCA, "
+                "exchange rate, GDP, or unemployment."
+            )
             self._query_response = QueryResponse(
-                answer="Your question was blocked by our safety filter. "
-                "Please rephrase and try again.",
+                answer=safety_msg,
                 tier_used=QueryTier.DIRECT_LOOKUP,
                 llm_tokens_used=0,
             )

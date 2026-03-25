@@ -264,7 +264,7 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
             detail=f"Internal error. correlation_id={correlation_id}",
         )
 
-    if not result.success or agent.query_response is None:
+    if agent.query_response is None:
         log.warning("query_agent_failure", errors=result.errors)
         raise HTTPException(
             status_code=500,
@@ -272,6 +272,11 @@ async def post_query(body: QueryRequest, request: Request, response: Response) -
         )
 
     query_resp = agent.query_response
+
+    # Guardrail blocked the query — return the safety message as a normal response
+    if not result.success:
+        log.warning("query_guardrail_triggered", errors=result.errors)
+        return query_resp
 
     # Update conversation history
     _append_history(session_id, "user", body.question)
@@ -340,7 +345,7 @@ async def query_stream(
             yield f"data: {error_payload}\n\n"
             return
 
-        if not result.success or agent.query_response is None:
+        if agent.query_response is None:
             log.warning("stream_query_agent_failure", errors=result.errors)
             error_payload = json.dumps(
                 {"error": f"Query failed. correlation_id={correlation_id}"}
