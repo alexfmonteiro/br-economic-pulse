@@ -46,6 +46,7 @@ async def get_cached_response(question: str, language: str) -> QueryResponse | N
     redis_token = os.environ.get("UPSTASH_REDIS_TOKEN", "")
 
     if not redis_url or not redis_token:
+        logger.warning("query_cache_skip_no_redis", op="get")
         return None
 
     try:
@@ -79,6 +80,7 @@ async def set_cached_response(
     redis_token = os.environ.get("UPSTASH_REDIS_TOKEN", "")
 
     if not redis_url or not redis_token:
+        logger.warning("query_cache_skip_no_redis", op="set")
         return
 
     try:

@@ -62,6 +62,7 @@ async def check_rate_limit(
     redis_token = os.environ.get("UPSTASH_REDIS_TOKEN", "")
 
     if not redis_url or not redis_token:
+        logger.warning("rate_limit_skip_no_redis")
         return True, 0  # fail-open
 
     key = _session_key(session_token)
