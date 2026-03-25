@@ -3,8 +3,9 @@
 # -----------------------------------------------------------------------------
 
 resource "upstash_redis_database" "cache" {
-  database_name = "br-economic-pulse-${var.environment}"
-  region        = var.upstash_region
-  tls           = true
-  eviction      = true # Evict keys when memory is full (LRU)
+  database_name  = "br_economic_pulse"
+  region         = "global"
+  primary_region = "us-east-1"
+  tls            = true
+  eviction       = false # Matches current setting
 }

@@ -39,12 +39,12 @@ output "upstash_redis_token" {
 # Sentry
 output "sentry_dsn_api" {
   description = "Sentry DSN for API project (SENTRY_DSN_API)"
-  value       = sentry_key.api.dsn_public
+  value       = sentry_key.api.dsn["public"]
   sensitive   = true
 }
 
 output "sentry_dsn_frontend" {
   description = "Sentry DSN for frontend project (SENTRY_DSN_FRONTEND)"
-  value       = sentry_key.frontend.dsn_public
+  value       = sentry_key.frontend.dsn["public"]
   sensitive   = true
 }

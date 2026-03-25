@@ -33,13 +33,13 @@ variable "neon_api_key" {
 variable "neon_project_name" {
   description = "Neon project name"
   type        = string
-  default     = "br-economic-pulse"
+  default     = "br_economic_pulse"
 }
 
 variable "neon_database_name" {
   description = "Neon database name"
   type        = string
-  default     = "br_economic_pulse"
+  default     = "neondb"
 }
 
 variable "neon_region" {
@@ -82,6 +82,11 @@ variable "sentry_token" {
 
 variable "sentry_organization" {
   description = "Sentry organization slug"
+  type        = string
+}
+
+variable "sentry_team" {
+  description = "Sentry team slug (Settings → Teams)"
   type        = string
 }
 

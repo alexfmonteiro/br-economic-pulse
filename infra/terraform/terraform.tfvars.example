@@ -8,8 +8,8 @@ r2_bucket_name        = "br-economic-pulse-data"
 
 # Neon
 neon_api_key      = ""
-neon_project_name = "br-economic-pulse"
-neon_database_name = "br_economic_pulse"
+neon_project_name  = "br_economic_pulse"
+neon_database_name = "neondb"
 neon_region       = "aws-us-east-1"
 
 # Upstash
@@ -20,6 +20,7 @@ upstash_region = "us-east-1"
 # Sentry
 sentry_token        = ""
 sentry_organization = ""
+sentry_team         = ""
 
 # General
 environment = "production"
