@@ -19,7 +19,7 @@ export const translations = {
     },
     ask: {
       title: 'Ask AI',
-      subtitle: 'Ask questions about Brazilian economic data. Complex questions use Claude Sonnet.',
+      subtitle: 'Ask questions about Brazilian economic data in natural language.',
       placeholder: 'Ask about Brazilian economic indicators...',
       send: 'Send',
       thinking: 'Thinking...',
@@ -137,7 +137,7 @@ export const translations = {
     },
     ask: {
       title: 'Pergunte a IA',
-      subtitle: 'Faca perguntas sobre dados economicos brasileiros. Consultas complexas usam o Claude Sonnet.',
+      subtitle: 'Faca perguntas sobre dados economicos brasileiros em linguagem natural.',
       placeholder: 'Pergunte sobre indicadores economicos brasileiros...',
       send: 'Enviar',
       thinking: 'Pensando...',
