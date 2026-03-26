@@ -2,11 +2,11 @@ FROM ghcr.io/marimo-team/marimo:latest-sql
 
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
-USER marimo
+USER appuser
 
 WORKDIR /app
 
-COPY --chown=marimo:marimo scripts/marimo-entrypoint.sh /app/entrypoint.sh
+COPY --chown=appuser:appuser scripts/marimo-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
