@@ -44,7 +44,7 @@ jobs:
           R2_CATALOG_TOKEN: ${{ secrets.R2_CATALOG_TOKEN }}
           R2_CATALOG_WAREHOUSE: ${{ secrets.R2_CATALOG_WAREHOUSE }}
           R2_CATALOG_URI: ${{ secrets.R2_CATALOG_URI }}
-        run: uv run python scripts/register_catalog.py
+        run: PYTHONPATH=. uv run python scripts/register_catalog.py
 
       - name: Trigger Railway gold sync
         if: success()
