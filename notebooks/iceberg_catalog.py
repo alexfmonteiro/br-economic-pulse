@@ -58,12 +58,12 @@ def _(catalog, mo, namespaces):
     mo.md("## Tables")
 
     all_tables = []
-    for ns in namespaces:
-        for tbl in catalog.list_tables(ns):
+    for _ns in namespaces:
+        for _tbl in catalog.list_tables(_ns):
             all_tables.append({
-                "namespace": ".".join(ns),
-                "table": tbl[1],
-                "full_name": f"{'.'.join(ns)}.{tbl[1]}",
+                "namespace": ".".join(_ns),
+                "table": _tbl[1],
+                "full_name": f"{'.'.join(_ns)}.{_tbl[1]}",
             })
 
     mo.ui.table(all_tables)
@@ -86,11 +86,11 @@ def _(all_tables, mo):
 def _(catalog, mo, table_picker):
     mo.stop(not table_picker.value)
 
-    parts = table_picker.value.split(".")
-    ns = tuple(parts[:-1])
-    tbl_name = parts[-1]
+    _parts = table_picker.value.split(".")
+    _ns = tuple(_parts[:-1])
+    _tbl_name = _parts[-1]
 
-    iceberg_table = catalog.load_table((*ns, tbl_name))
+    iceberg_table = catalog.load_table((*_ns, _tbl_name))
 
     mo.md(f"### `{table_picker.value}`")
     mo.md(f"**Schema:**\n```\n{iceberg_table.schema()}\n```")
