@@ -43,16 +43,17 @@ def _(duckdb, os):
 
 @app.cell
 def _(conn, bucket):
-    # List available gold parquet files
+    # List available gold parquet files via filename column
     gold_files_df = conn.execute(f"""
-        SELECT file FROM glob('r2://{bucket}/gold/*.parquet')
+        SELECT DISTINCT filename
+        FROM read_parquet('r2://{bucket}/gold/*.parquet', filename=true)
     """).df()
 
     series_list = sorted(
         f.split("/")[-1].replace(".parquet", "")
-        for f in gold_files_df["file"].tolist()
+        for f in gold_files_df["filename"].tolist()
     )
-    return series_list,
+    return (series_list,)
 
 
 @app.cell

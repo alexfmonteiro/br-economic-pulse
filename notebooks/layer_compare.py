@@ -55,16 +55,31 @@ def _(conn, bucket, mo, series_input):
         mo.stop(True, mo.md("Enter a series ID above."))
 
     layers = {}
-    for layer in ["bronze", "silver", "gold"]:
+
+    # Bronze: files are at bronze/{series_id}/{timestamp}.parquet
+    try:
+        df = conn.execute(f"""
+            SELECT 'bronze' AS layer,
+                   count(*) AS rows,
+                   min(date) AS min_date,
+                   max(date) AS max_date,
+                   count(*) - count(value) AS null_values
+            FROM read_parquet('r2://{bucket}/bronze/{sid}/*.parquet', union_by_name=true)
+        """).df()
+        layers["bronze"] = df
+    except Exception:
+        layers["bronze"] = None
+
+    # Silver and gold: files are at {layer}/{series_id}.parquet
+    for layer in ["silver", "gold"]:
         try:
-            pattern = f"r2://{bucket}/{layer}/{sid}*.parquet"
             df = conn.execute(f"""
                 SELECT '{layer}' AS layer,
                        count(*) AS rows,
                        min(date) AS min_date,
                        max(date) AS max_date,
                        count(*) - count(value) AS null_values
-                FROM read_parquet('{pattern}')
+                FROM read_parquet('r2://{bucket}/{layer}/{sid}.parquet')
             """).df()
             layers[layer] = df
         except Exception:

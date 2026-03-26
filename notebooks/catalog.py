@@ -10,7 +10,7 @@ def _(mo):
         """
         # Data Catalog
 
-        Browse all series available in R2, with file sizes and row counts
+        Browse all series available in R2, with row counts
         per medallion layer.
         """
     )
@@ -47,13 +47,13 @@ def _(conn, bucket, mo):
 
     gold_info = conn.execute(f"""
         SELECT
-            replace(split_part(file, '/', -1), '.parquet', '') AS series,
+            replace(split_part(filename, '/', -1), '.parquet', '') AS series,
             count(*) AS rows,
             min(date) AS first_date,
             max(date) AS last_date,
-            round(count(*) - count(value), 0) AS null_values
+            count(*) - count(value) AS null_values
         FROM read_parquet('r2://{bucket}/gold/*.parquet', filename=true)
-        GROUP BY file
+        GROUP BY filename
         ORDER BY series
     """).df()
 
@@ -63,29 +63,22 @@ def _(conn, bucket, mo):
 
 @app.cell
 def _(conn, bucket, mo):
-    mo.md("### Bronze Layer Files")
-
-    try:
-        bronze_files = conn.execute(f"""
-            SELECT file FROM glob('r2://{bucket}/bronze/**/*.parquet')
-        """).df()
-        mo.ui.table(bronze_files)
-    except Exception as e:
-        mo.md(f"Could not list bronze files: `{e}`")
-    return
-
-
-@app.cell
-def _(conn, bucket, mo):
     mo.md("### Silver Layer Files")
 
     try:
-        silver_files = conn.execute(f"""
-            SELECT file FROM glob('r2://{bucket}/silver/*.parquet')
+        silver_info = conn.execute(f"""
+            SELECT
+                replace(split_part(filename, '/', -1), '.parquet', '') AS series,
+                count(*) AS rows,
+                min(date) AS first_date,
+                max(date) AS last_date
+            FROM read_parquet('r2://{bucket}/silver/*.parquet', filename=true)
+            GROUP BY filename
+            ORDER BY series
         """).df()
-        mo.ui.table(silver_files)
+        mo.ui.table(silver_info)
     except Exception as e:
-        mo.md(f"Could not list silver files: `{e}`")
+        mo.md(f"Could not read silver layer: `{e}`")
     return
 
 
