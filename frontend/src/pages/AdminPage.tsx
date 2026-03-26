@@ -363,6 +363,34 @@ function SystemInfoSection() {
   );
 }
 
+// --- Data Explorer ---
+
+const MARIMO_URL = import.meta.env.VITE_MARIMO_URL ?? '';
+
+function DataExplorerSection() {
+  if (!MARIMO_URL) return null;
+
+  return (
+    <Card title="Data Explorer">
+      <p className="text-sm text-slate-400 mb-4">
+        Interactive DuckDB notebooks for inspecting bronze, silver, and gold
+        parquet data directly from R2.
+      </p>
+      <a
+        href={MARIMO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors"
+      >
+        Open Notebooks
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+        </svg>
+      </a>
+    </Card>
+  );
+}
+
 // --- Main ---
 
 export function AdminPage() {
@@ -376,6 +404,7 @@ export function AdminPage() {
       </header>
 
       <div className="space-y-6">
+        <DataExplorerSection />
         <PipelineRunsSection />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
