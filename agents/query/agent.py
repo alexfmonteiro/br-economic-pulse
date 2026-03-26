@@ -34,7 +34,9 @@ ALL_SERIES: list[str] = list(SERIES_DISPLAY.keys())
 _MODEL = "claude-haiku-4-5-20251001"
 
 # Max recent data points to include per relevant series.
-_MAX_CONTEXT_POINTS = 10
+# Daily series need ~60 points for YTD queries, ~250 for 1-year.
+# Monthly series (IPCA, unemployment, GDP) need fewer.
+_MAX_CONTEXT_POINTS = 90
 
 
 class QueryAgent(BaseAgent):
