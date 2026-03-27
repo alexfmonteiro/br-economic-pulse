@@ -184,9 +184,9 @@ async def list_series() -> list[dict[str, str]]:
 
 
 @app.get("/api/config/domain")
-async def domain_config() -> PublicDomainConfig:
+async def domain_config(domain_id: str | None = None) -> PublicDomainConfig:
     """Return the public domain configuration for the frontend."""
-    cfg = get_domain_config()
+    cfg = get_domain_config(domain_id)
     return PublicDomainConfig.model_validate(cfg.model_dump(
         include={"domain", "ai", "data_sources", "series", "app", "landing"},
         exclude={

@@ -71,8 +71,9 @@ export interface DomainConfig {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
-export async function fetchDomainConfig(): Promise<DomainConfig> {
-  const res = await fetch(`${API_BASE}/api/config/domain`);
+export async function fetchDomainConfig(domainId?: string): Promise<DomainConfig> {
+  const params = domainId ? `?domain_id=${encodeURIComponent(domainId)}` : '';
+  const res = await fetch(`${API_BASE}/api/config/domain${params}`);
   if (!res.ok) throw new Error(`Failed to load domain config: ${res.status}`);
   return res.json() as Promise<DomainConfig>;
 }
@@ -81,14 +82,14 @@ export async function fetchDomainConfig(): Promise<DomainConfig> {
 
 const DomainConfigContext = createContext<DomainConfig | null>(null);
 
-export function DomainProvider({ children }: { children: ReactNode }) {
+export function DomainProvider({ children, domainId }: { children: ReactNode; domainId?: string }) {
   const [config, setConfig] = useState<DomainConfig | null>(null);
 
   useEffect(() => {
-    fetchDomainConfig().then(setConfig).catch((err) => {
+    fetchDomainConfig(domainId).then(setConfig).catch((err) => {
       console.error('Failed to load domain config:', err);
     });
-  }, []);
+  }, [domainId]);
 
   if (!config) {
     return createElement('div', {

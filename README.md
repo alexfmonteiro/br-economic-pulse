@@ -1,17 +1,30 @@
 # Veredas
 
-A Brazilian macroeconomic data dashboard with natural-language query support. It fetches data from BCB, IBGE, and Tesouro Nacional, processes it through a medallion pipeline (bronze/silver/gold), and serves it via an interactive React dashboard and natural language query interface.
+Open-source data intelligence engine. Build domain-specific AI agents for economic and financial data analysis — configurable per domain, with bilingual support (EN/PT), tiered query routing, and full pipeline observability.
+
+## How It Works
+
+Each **domain** is a YAML configuration file that defines data sources, AI prompts, query routing, series metadata, and landing page content. The platform reads the active domain config at startup and serves a fully customized experience — no code changes needed.
+
+```
+config/domains/
+├── br_macro.yaml     # Brazilian macroeconomic data (default)
+├── test_demo.yaml    # Test domain for white-label validation
+└── README.md         # How to create a new domain
+```
+
+**Example:** The `br_macro` domain tracks SELIC, IPCA, USD/BRL, unemployment, GDP, and treasury yields from BCB, IBGE, and Tesouro Nacional. A different domain could track entirely different indicators from different sources.
 
 ## Architecture
 
 ```
-GitHub Actions (cron 06:00 UTC)
+GitHub Actions (cron)
         |
         v
  +---------------+     +-----------------+     +-------------+
  | IngestionTask | --> | QualityTask     | --> | Transform.  |
- | (BCB, IBGE,   |     | (post-ingest)   |     | Task        |
- |  Tesouro)     |     +-----------------+     +------+------+
+ | (per domain   |     | (post-ingest)   |     | Task        |
+ |  feed configs)|     +-----------------+     +------+------+
  +---------------+                                     |
                                                       v
                                               +------------------+
@@ -44,17 +57,23 @@ GitHub Actions (cron 06:00 UTC)
 | Hosting | Railway (API), Vercel (frontend) |
 | CI/CD | GitHub Actions |
 | Security | L1 regex sanitization, L3 XML data fencing |
+| Config | YAML domain configs with Pydantic v2 validation |
 
-## Data Sources
+## Domain Configuration
 
-| Series | Source | ID |
-|---|---|---|
-| SELIC rate | [BCB SGS](https://www3.bcb.gov.br/sgspub/) | 432 |
-| IPCA inflation | [BCB SGS](https://www3.bcb.gov.br/sgspub/) | 433 |
-| USD/BRL exchange | [BCB SGS](https://www3.bcb.gov.br/sgspub/) | 1 |
-| Unemployment | [IBGE PNAD](https://sidra.ibge.gov.br/) | PNAD Continua |
-| GDP | [IBGE](https://sidra.ibge.gov.br/) | Quarterly GDP |
-| Treasury yields | [Tesouro Direto](https://www.tesourotransparente.com.br/) | Bond yields |
+Each domain YAML defines:
+
+| Section | What it configures |
+|---|---|
+| `domain` | Country, currency, languages, timezone |
+| `ai` | Analyst role, safety message, anomaly context (bilingual) |
+| `data_sources` | External APIs the pipeline ingests from |
+| `router` | Regex patterns for direct-lookup query routing |
+| `series` | Tracked data series with labels, units, colors, keywords |
+| `app` | Title, cookie name, GitHub URL |
+| `landing` | Hero text, feature cards (bilingual) |
+
+See [`config/domains/README.md`](config/domains/README.md) for how to create a new domain.
 
 ## Local Development
 
@@ -79,7 +98,7 @@ docker compose up -d
 
 # Create local env
 cp .env.example .env.local
-# Edit .env.local — set STORAGE_BACKEND=local
+# Edit .env.local — set STORAGE_BACKEND=local, DOMAIN_ID=br_macro
 
 # Download test fixtures
 uv run python scripts/download_fixtures.py

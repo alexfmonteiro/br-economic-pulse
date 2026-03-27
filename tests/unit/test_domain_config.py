@@ -82,20 +82,31 @@ def test_localized_strings_complete() -> None:
     check_localized(config, "config")
 
 
-def test_singleton_behavior() -> None:
+def test_cache_behavior() -> None:
     """get_domain_config() returns the same instance on repeated calls."""
     first = get_domain_config()
     second = get_domain_config()
     assert first is second
 
 
-def test_reset_clears_cache() -> None:
-    """reset_domain_config() forces a reload on next access."""
-    first = get_domain_config()
+def test_multi_domain_cache() -> None:
+    """Multiple domains can be cached simultaneously."""
+    br = get_domain_config("br_macro")
+    demo = get_domain_config("test_demo")
+    assert br is not demo
+    assert br.domain.name != demo.domain.name
+    # Both remain cached
+    assert get_domain_config("br_macro") is br
+    assert get_domain_config("test_demo") is demo
+
+
+def test_reset_clears_all_caches() -> None:
+    """reset_domain_config() clears all cached domains."""
+    get_domain_config("br_macro")
+    get_domain_config("test_demo")
     reset_domain_config()
-    second = get_domain_config()
-    assert first is not second
-    assert first.domain.id == second.domain.id
+    fresh = get_domain_config("br_macro")
+    assert fresh.domain.id == "br_macro"
 
 
 def test_invalid_yaml_raises() -> None:
