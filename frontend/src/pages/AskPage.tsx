@@ -84,14 +84,28 @@ export function AskPage() {
 
   const suggestions = language === 'pt'
     ? [
-        `Qual é a taxa ${indicators.split(',')[0]?.trim()} atual?`,
-        `Como os indicadores mudaram este ano?`,
-        `Qual é o último dado disponível?`,
+        'Compare o atual ciclo de alta da SELIC com o período de 2015-2016.',
+        'Existe alguma divergência entre as projeções do Focus para o IPCA e os juros reais (IPCA+) hoje?',
+        'Como a variação do dólar (USD/BRL) nos últimos 6 meses impactou a inflação (IPCA)?',
+        'Considerando a carga de energia (ONS), a atividade econômica (IBC-Br) está acelerando?',
+        'Quais indicadores macroeconômicos estão sinalizando anomalias estatísticas nesta semana?',
+        'Qual a relação histórica entre a inadimplência PJ e a taxa de desemprego?',
+        'Como o spread entre o Tesouro Prefixado Longo e Curto se comportou no último trimestre?',
+        'Faça um resumo executivo dos riscos fiscais analisando a Dívida/PIB e o Resultado Primário.',
+        'Existem sinais de recessão analisando o IBC-Br, produção industrial e vendas no varejo?',
+        'Com base na inflação e câmbio atuais, o que o mercado precifica (Focus) para a SELIC?',
       ]
     : [
-        `What is the current ${indicators.split(',')[0]?.trim()} rate?`,
-        `How have the indicators changed this year?`,
-        `What is the latest data available?`,
+        'Compare the current SELIC cycle with the 2015-2016 environment.',
+        'Is there a divergence between Focus IPCA expectations and market real yields (IPCA+)?',
+        'How has the USD/BRL variation over the last 6 months impacted inflation (IPCA)?',
+        'Considering ONS electricity load, is economic activity (IBC-Br) accelerating?',
+        'Which macroeconomic indicators are flashing statistical anomalies this week?',
+        'What is the historical relationship between corporate default rates and unemployment?',
+        'How has the spread between long and short Treasury yields behaved in the last quarter?',
+        'Provide an executive summary of fiscal risks analyzing Debt/GDP and Primary Balance.',
+        'Are there recession signals if we jointly analyze IBC-Br, industrial production, and retail?',
+        'Based on current inflation and FX, what is the market pricing (Focus) for the SELIC rate?',
       ];
 
   const scrollToBottom = () => {

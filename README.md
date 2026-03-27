@@ -1,6 +1,8 @@
-# Veredas
+# Veredas: Enterprise Macro Intelligence Engine
 
-Open-source data intelligence engine. Build domain-specific AI agents for economic and financial data analysis — configurable per domain, with bilingual support (EN/PT), tiered query routing, and full pipeline observability.
+An open-source, enterprise-grade data intelligence engine. Built for asset managers, hedge funds, and boutique research firms, Veredas allows you to deploy **domain-specific AI analysts** for economic and financial data analysis. 
+
+By combining deterministic quantitative lookups with the qualitative reasoning of modern LLMs, Veredas drastically reduces hallucination risk by anchoring responses to exact data. It features YAML-driven domain configurability, bilingual support (EN/PT), tiered query routing, and full pipeline observability.
 
 ## How It Works
 

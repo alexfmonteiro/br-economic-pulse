@@ -644,51 +644,51 @@ app:
 
 landing:
   hero_title:
-    en: "Brazilian Economic Intelligence"
-    pt: "Inteligência Econômica Brasileira"
+    en: "Enterprise Macro Intelligence Engine"
+    pt: "Motor de Inteligência Macro para Instituições"
   hero_subtitle:
-    en: "Real-time macroeconomic data, AI-powered analysis, and pipeline transparency — all in one place."
-    pt: "Dados macroeconômicos em tempo real, análise com IA e transparência do pipeline — tudo em um só lugar."
+    en: "Your dedicated AI analyst for Brazilian macroeconomic data. Real-time data aggregation, tiered AI reasoning, and quantitative accuracy for asset managers and research firms."
+    pt: "Seu analista dedicado de IA para dados macroeconômicos. Agregação em tempo real, raciocínio de IA em camadas e precisão quantitativa para gestoras e research."
   features:
-    - icon: chart
-      title:
-        en: "Real-Time Data"
-        pt: "Dados em Tempo Real"
-      description:
-        en: "Daily-updated indicators from BCB, IBGE, and Tesouro Nacional with automated quality checks."
-        pt: "Indicadores atualizados diariamente do BCB, IBGE e Tesouro Nacional com verificações automáticas de qualidade."
     - icon: ai
       title:
-        en: "AI-Powered Q&A"
-        pt: "Perguntas com IA"
+        en: "AI Analyst Co-pilot"
+        pt: "Analista de IA Dedicado"
       description:
-        en: "Ask questions about Brazilian economic data in natural language and get sourced, data-backed answers."
-        pt: "Faça perguntas sobre dados econômicos brasileiros em linguagem natural e receba respostas com fontes."
-    - icon: alert
-      title:
-        en: "Anomaly Detection"
-        pt: "Detecção de Anomalias"
-      description:
-        en: "Statistical outlier detection flags unusual movements across interest rates, inflation, and exchange rates."
-        pt: "Detecção de outliers estatísticos sinaliza movimentos incomuns em juros, inflação e câmbio."
-    - icon: globe
-      title:
-        en: "Multilingual"
-        pt: "Multilíngue"
-      description:
-        en: "Full Portuguese and English support — data labels, AI responses, and interface."
-        pt: "Suporte completo em português e inglês — rótulos, respostas da IA e interface."
+        en: "Query complex macroeconomic relationships in natural language. The engine combines exact quantitative lookups with advanced qualitative reasoning."
+        pt: "Consulte relações macroeconômicas complexas em linguagem natural. O motor combina buscas quantitativas exatas com raciocínio qualitativo avançado."
     - icon: database
       title:
-        en: "Open Data Sources"
-        pt: "Dados Abertos"
+        en: "Resilient Data Pipeline"
+        pt: "Pipeline de Dados Resiliente"
       description:
-        en: "Built on official public data from the Central Bank, IBGE, and National Treasury."
-        pt: "Construído com dados públicos oficiais do Banco Central, IBGE e Tesouro Nacional."
+        en: "Built on financial-grade infrastructure with automated daily ingestion, robust data quality validations, and deterministic query execution for exact math."
+        pt: "Construído sobre infraestrutura de nível financeiro com ingestão diária automática, robustas validações de qualidade e execução de queries determinísticas."
+    - icon: chart
+      title:
+        en: "Real-Time Central Bank & IBGE Data"
+        pt: "Dados em Tempo Real do BCB e IBGE"
+      description:
+        en: "Daily and monthly indicators spanning SELIC, IPCA, GDP proxy, and ONS load, directly sourced and cross-analyzed for early market signals."
+        pt: "Indicadores diários e mensais como SELIC, IPCA, proxy do PIB e carga do ONS, extraídos diretamente e analisados em conjunto para sinais precoces de mercado."
+    - icon: alert
+      title:
+        en: "Statistical Anomaly Alerts"
+        pt: "Alertas Estatísticos de Anomalias"
+      description:
+        en: "Automated event-driven anomaly detection flags statistical outliers (z-score > 2) and sends immediate AI-generated commentary to your team."
+        pt: "Detecção automatizada baseada em eventos que sinaliza outliers estatísticos (z-score > 2) e envia comentários gerados por IA para a sua equipe."
     - icon: eye
       title:
-        en: "Pipeline Transparency"
-        pt: "Transparência do Pipeline"
+        en: "Financial Pipeline Governance"
+        pt: "Governança de Dados Financeiros"
       description:
-        en: "Full observability into data ingestion, transformation, quality checks, and run history."
-        pt: "Observabilidade completa de ingestão, transformação, verificações de qualidade e histórico de execuções."
+        en: "Enterprise-grade observability into schema evolution, null rates, and freshness, ensuring ultimate trust in the analytical outputs."
+        pt: "Observabilidade de nível enterprise de evolução de schemas, taxas de valores nulos e frescor de dados, garantindo confiança absoluta nos outputs."
+    - icon: globe
+      title:
+        en: "Bilingual by Default"
+        pt: "Bilíngue Nativamente"
+      description:
+        en: "Full Portuguese and English support for global investment teams investigating Brazilian markets and emerging market trends."
+        pt: "Suporte completo em português e inglês para equipes de investimento globais investigando o mercado brasileiro."
