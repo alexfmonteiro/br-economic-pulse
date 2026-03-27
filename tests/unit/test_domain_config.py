@@ -131,3 +131,92 @@ def test_landing_features_count() -> None:
     """Landing page has 6 feature cards."""
     config = load_domain_config("br_macro")
     assert len(config.landing.features) == 6
+
+
+# ---------------------------------------------------------------------------
+# Second-domain (test_demo) validation
+# ---------------------------------------------------------------------------
+
+
+def test_second_domain_loads() -> None:
+    """test_demo.yaml parses into a valid DomainConfig."""
+    config = load_domain_config("test_demo")
+    assert isinstance(config, DomainConfig)
+    assert config.domain.name == "TestPlatform"
+    assert config.domain.country == "Testland"
+    assert len(config.series) == 2
+
+
+def test_second_domain_prompts_use_config() -> None:
+    """Prompts built with test_demo contain 'Testland', not 'Brazilian'."""
+    config = load_domain_config("test_demo")
+
+    from security.xml_fencing import build_insight_prompt
+
+    system, _ = build_insight_prompt("test data", config=config)
+    assert "Testland" in system
+    assert "Brazilian" not in system
+
+
+def test_second_domain_router_keywords() -> None:
+    """test_demo keywords route correctly; br_macro keywords do not."""
+    reset_domain_config()
+    config = load_domain_config("test_demo")
+
+    # Build keywords from test_demo config
+    keywords: dict[str, str] = {}
+    for sid, series in config.series.items():
+        for kw in series.keywords:
+            keywords[kw] = sid
+
+    assert "rate1" in keywords
+    assert keywords["rate1"] == "test_rate"
+    assert "selic" not in keywords
+
+
+def test_second_domain_series_config() -> None:
+    """Series config built from test_demo has test_rate, not bcb_selic."""
+    config = load_domain_config("test_demo")
+    assert "test_rate" in config.series
+    assert "test_index" in config.series
+    assert "bcb_selic" not in config.series
+
+
+def test_second_domain_safety_message() -> None:
+    """Safety message mentions Testland scope."""
+    config = load_domain_config("test_demo")
+    scope = config.ai.scope_description.en
+    indicators = config.ai.example_indicators.en
+    msg = config.ai.safety_message.en.format(
+        scope=scope, example_indicators=indicators,
+    )
+    assert "Testland" in msg
+    assert "RATE1" in msg
+
+
+def test_second_domain_data_sources() -> None:
+    """test_demo data sources contain TDB, not BCB."""
+    config = load_domain_config("test_demo")
+    source_ids = [ds.id for ds in config.data_sources]
+    assert "tdb" in source_ids
+    assert "bcb" not in source_ids
+
+
+def test_domains_are_isolated() -> None:
+    """Loading different domains produces different prompts."""
+    from security.xml_fencing import build_insight_prompt
+
+    # Load br_macro
+    br = load_domain_config("br_macro")
+    system_br, _ = build_insight_prompt("data", config=br)
+    assert "Brazilian" in system_br.lower() or br.ai.analyst_role.en in system_br
+
+    # Reset and load test_demo
+    reset_domain_config()
+    demo = load_domain_config("test_demo")
+    system_demo, _ = build_insight_prompt("data", config=demo)
+    assert "Testland" in system_demo
+    assert demo.ai.analyst_role.en in system_demo
+
+    # Verify they differ
+    assert system_br != system_demo

@@ -1,0 +1,92 @@
+# Test domain configuration for white-label validation.
+# NOT a real domain — used only in tests to prove config decoupling.
+
+domain:
+  id: test_demo
+  name: "TestPlatform"
+  description: "A test data intelligence platform"
+  country: "Testland"
+  country_code: "TL"
+  currency: "TLD"
+  currency_symbol: "T$"
+  timezone: "UTC"
+  default_language: "en"
+  supported_languages: ["en", "pt"]
+
+ai:
+  scope_description:
+    en: "Testland economic data analysis"
+    pt: "análise de dados econômicos de Testland"
+  analyst_role:
+    en: "economic data analyst for Testland indicators"
+    pt: "analista de dados econômicos para indicadores de Testland"
+  safety_message:
+    en: "My scope is exclusively {scope}. Ask about {example_indicators}."
+    pt: "Meu escopo é exclusivamente {scope}. Pergunte sobre {example_indicators}."
+  example_indicators:
+    en: "RATE1, INDEX1"
+    pt: "RATE1, INDEX1"
+  anomaly_context:
+    en: "Consider Testland economic history: founding (2000), crisis (2010)."
+    pt: "Considere a história econômica de Testland: fundação (2000), crise (2010)."
+
+data_sources:
+  - id: tdb
+    name: "Testland Data Bureau"
+    url: "https://example.com/tdb"
+    description:
+      en: "Official Testland data source"
+      pt: "Fonte oficial de dados de Testland"
+
+router:
+  direct_lookup_patterns:
+    - pattern: "(what|qual).*(current|atual).*({keywords})"
+      handler: latest_value
+
+series:
+  test_rate:
+    label: "RATE1"
+    unit: "% p.a."
+    source: "TDB"
+    color: "#3b82f6"
+    freshness_hours: 72
+    domain: rates
+    description:
+      en: "Testland benchmark rate"
+      pt: "Taxa referência de Testland"
+    keywords: ["rate1", "benchmark"]
+  test_index:
+    label: "INDEX1"
+    unit: "pts"
+    source: "TDB"
+    color: "#8b5cf6"
+    freshness_hours: 1080
+    domain: indices
+    description:
+      en: "Testland consumer index"
+      pt: "Índice do consumidor de Testland"
+    keywords: ["index1", "consumer"]
+
+app:
+  title: "TestPlatform"
+  session_cookie_name: "test_session"
+  meta_description:
+    en: "Testland data intelligence dashboard"
+    pt: "Painel de inteligência de dados de Testland"
+  github_url: "https://github.com/example/test"
+
+landing:
+  hero_title:
+    en: "Testland Data, Explained"
+    pt: "Dados de Testland, Explicados"
+  hero_subtitle:
+    en: "Real-time indicators with AI analysis"
+    pt: "Indicadores em tempo real com análise por IA"
+  features:
+    - icon: chart
+      title:
+        en: "Real-time Data"
+        pt: "Dados em Tempo Real"
+      description:
+        en: "2 indicators"
+        pt: "2 indicadores"

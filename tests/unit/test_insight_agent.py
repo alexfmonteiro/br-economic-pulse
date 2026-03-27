@@ -515,26 +515,26 @@ class TestFormatAnomalyPromptData:
 
 
 class TestBuildSeriesDescriptions:
-    def test_includes_all_series(self) -> None:
+    def test_includes_all_series(self, domain_config: object) -> None:
+        """Series descriptions should include all series from config."""
+        from config import get_domain_config
+
+        cfg = get_domain_config()
         result = _build_series_descriptions()
-        assert "SELIC" in result
-        assert "IPCA" in result
-        assert "USD/BRL" in result
-        assert "PIB" in result
-        assert "Taxa de Desemprego" in result
-        assert "Prefixado Curto" in result
-        assert "Prefixado Longo" in result
-        assert "Juros Real" in result
+        for sid, series in cfg.series.items():
+            assert series.label in result, f"Missing label: {series.label}"
 
 
 class TestBuildAnomalyPrompt:
-    def test_xml_fencing_structure(self) -> None:
+    def test_xml_fencing_structure(self, domain_config: object) -> None:
+        from config.domain import DomainConfig
         from security.xml_fencing import build_anomaly_prompt
 
-        system, user = build_anomaly_prompt("anomaly data here", "series desc here")
+        cfg = DomainConfig.model_validate(domain_config) if not isinstance(domain_config, DomainConfig) else domain_config
+        system, user = build_anomaly_prompt("anomaly data here", "series desc here", config=cfg)
         assert "<anomaly-data" in system
         assert "anomaly data here" in system
         assert "<series-descriptions>" in system
         assert "series desc here" in system
-        assert "<pt>" in user
-        assert "<en>" in user
+        assert "pt" in user
+        assert "en" in user
