@@ -59,6 +59,30 @@ data_sources:
     description:
       en: "Government bond yields (Prefixado, IPCA+)"
       pt: "Rendimentos de títulos públicos (Prefixado, IPCA+)"
+  - id: fred
+    name: "Federal Reserve Economic Data"
+    url: "https://fred.stlouisfed.org/"
+    description:
+      en: "Commodity prices (Brent, iron ore, soybeans) and US reference rates (Fed Funds, CPI)"
+      pt: "Preços de commodities (Brent, minério, soja) e taxas de referência dos EUA (Fed Funds, CPI)"
+  - id: focus
+    name: "BCB FOCUS Survey"
+    url: "https://olinda.bcb.gov.br/olinda/servico/Expectativas/"
+    description:
+      en: "Market consensus expectations for SELIC, IPCA, GDP, and exchange rate"
+      pt: "Expectativas de mercado para SELIC, IPCA, PIB e câmbio"
+  - id: world_bank
+    name: "World Bank"
+    url: "https://data.worldbank.org/"
+    description:
+      en: "International comparison indicators (GDP growth, CPI, unemployment, current account)"
+      pt: "Indicadores de comparação internacional (crescimento do PIB, inflação, desemprego, conta corrente)"
+  - id: ons
+    name: "ONS - Operador Nacional do Sistema Elétrico"
+    url: "https://dados.ons.org.br/"
+    description:
+      en: "Daily electricity load — real-time GDP proxy with zero lag"
+      pt: "Carga de energia elétrica diária — proxy do PIB em tempo real sem defasagem"
 
 router:
   direct_lookup_patterns:
@@ -130,6 +154,42 @@ series:
       pt: "Valor total de bens e serviços produzidos no Brasil, em bilhões de reais. É a medida mais ampla da atividade econômica."
     keywords: ["pib", "gdp"]
 
+  ibge_pim:
+    label: "Produção Industrial"
+    unit: "% MoM"
+    source: "IBGE"
+    color: "#0d9488"
+    freshness_hours: 1080
+    domain: activity
+    description:
+      en: "Industrial production (PIM-PF) month-over-month change, seasonally adjusted. Industry is ~25% of GDP."
+      pt: "Produção industrial (PIM-PF) variação mês a mês, dessazonalizada. Indústria representa ~25% do PIB."
+    keywords: ["produção industrial", "industrial production", "pim", "pim-pf"]
+
+  ibge_pmc:
+    label: "Vendas no Varejo"
+    unit: "% MoM"
+    source: "IBGE"
+    color: "#14b8a6"
+    freshness_hours: 1440
+    domain: activity
+    description:
+      en: "Retail sales (PMC) month-over-month change, seasonally adjusted. Retail is ~12% of GDP and a direct consumer spending gauge."
+      pt: "Vendas no varejo (PMC) variação mês a mês, dessazonalizada. Varejo representa ~12% do PIB e mede o consumo diretamente."
+    keywords: ["varejo", "retail", "pmc", "vendas"]
+
+  ibge_pms:
+    label: "Serviços"
+    unit: "% MoM"
+    source: "IBGE"
+    color: "#2dd4bf"
+    freshness_hours: 1440
+    domain: activity
+    description:
+      en: "Services sector (PMS) month-over-month change, seasonally adjusted. Services is ~70% of GDP — the dominant sector."
+      pt: "Setor de serviços (PMS) variação mês a mês, dessazonalizada. Serviços representam ~70% do PIB — o setor dominante."
+    keywords: ["serviços", "services", "pms"]
+
   tesouro_prefixado_curto:
     label: "Prefixado Curto"
     unit: "% a.a."
@@ -165,6 +225,414 @@ series:
       en: "Average real yield of inflation-linked bonds (IPCA+, Educa+, Renda+). The real interest rate the market demands above IPCA inflation."
       pt: "Média dos juros reais dos títulos atrelados à inflação (IPCA+, Educa+, Renda+). Mostra a taxa real de juros que o mercado exige acima da inflação."
     keywords: ["juros real", "ntn-b"]
+
+  bcb_cdi:
+    label: "CDI"
+    unit: "% a.d."
+    source: "BCB"
+    color: "#2563eb"
+    freshness_hours: 72
+    domain: monetary_policy
+    description:
+      en: "Daily interbank rate (CDI). Nearly all Brazilian fixed income is benchmarked to CDI. The SELIC-CDI spread is a liquidity indicator."
+      pt: "Taxa interbancária diária (CDI). Quase toda a renda fixa brasileira é indexada ao CDI. O spread SELIC-CDI indica liquidez."
+    keywords: ["cdi"]
+
+  bcb_cdi_monthly:
+    label: "CDI Mensal"
+    unit: "% a.m."
+    source: "BCB"
+    color: "#1d4ed8"
+    freshness_hours: 720
+    domain: monetary_policy
+    description:
+      en: "CDI accumulated monthly rate. Used as benchmark for fund performance and fixed income returns."
+      pt: "CDI acumulado no mês. Usado como referência para rendimento de fundos e renda fixa."
+    keywords: ["cdi mensal", "cdi acumulado"]
+
+  bcb_igpm:
+    label: "IGP-M"
+    unit: "% a.m."
+    source: "BCB"
+    color: "#7c3aed"
+    freshness_hours: 720
+    domain: inflation
+    description:
+      en: "IGP-M monthly variation (FGV). Used for rent adjustments in ~35M contracts. Heavily influenced by wholesale prices and exchange rate."
+      pt: "Variação mensal do IGP-M (FGV). Usado para reajuste de aluguéis em ~35M de contratos. Fortemente influenciado por preços no atacado e câmbio."
+    keywords: ["igpm", "igp-m", "igp"]
+
+  bcb_inpc:
+    label: "INPC"
+    unit: "% a.m."
+    source: "BCB"
+    color: "#9333ea"
+    freshness_hours: 1080
+    domain: inflation
+    description:
+      en: "INPC monthly variation (IBGE). Minimum wage adjustment index — affects 50M+ workers."
+      pt: "Variação mensal do INPC (IBGE). Índice de reajuste do salário mínimo — afeta mais de 50M de trabalhadores."
+    keywords: ["inpc"]
+
+  bcb_ipca15:
+    label: "IPCA-15"
+    unit: "% a.m."
+    source: "BCB"
+    color: "#a855f7"
+    freshness_hours: 720
+    domain: inflation
+    description:
+      en: "IPCA-15 monthly preview, released ~1 week before official IPCA. Markets move on this as the inflation preview."
+      pt: "Prévia mensal do IPCA, divulgada ~1 semana antes do IPCA oficial. Mercados reagem a este indicador como prévia da inflação."
+    keywords: ["ipca-15", "ipca15", "ipca 15", "prévia"]
+
+  bcb_default_total:
+    label: "Inadimplência Total"
+    unit: "%"
+    source: "BCB"
+    color: "#dc2626"
+    freshness_hours: 1440
+    domain: credit
+    description:
+      en: "Credit default rate for the total financial system. Earliest recession warning signal — rising defaults precede spending contraction by 2-3 months."
+      pt: "Taxa de inadimplência do sistema financeiro total. Sinal mais precoce de recessão — inadimplência em alta precede queda do consumo em 2-3 meses."
+    keywords: ["inadimplencia", "inadimplência", "default"]
+
+  bcb_default_pf:
+    label: "Inadimplência PF"
+    unit: "%"
+    source: "BCB"
+    color: "#ef4444"
+    freshness_hours: 1440
+    domain: credit
+    description:
+      en: "Credit default rate for individuals (pessoa física). Consumer credit stress indicator."
+      pt: "Taxa de inadimplência de pessoa física. Indicador de estresse no crédito ao consumidor."
+    keywords: ["inadimplencia pf", "default pf"]
+
+  bcb_default_pj:
+    label: "Inadimplência PJ"
+    unit: "%"
+    source: "BCB"
+    color: "#b91c1c"
+    freshness_hours: 1440
+    domain: credit
+    description:
+      en: "Credit default rate for corporates (pessoa jurídica). Business credit stress indicator."
+      pt: "Taxa de inadimplência de pessoa jurídica. Indicador de estresse no crédito empresarial."
+    keywords: ["inadimplencia pj", "default pj"]
+
+  bcb_lending_rate:
+    label: "Taxa de Empréstimo"
+    unit: "% a.a."
+    source: "BCB"
+    color: "#e11d48"
+    freshness_hours: 720
+    domain: credit
+    description:
+      en: "Average lending rate for new credit operations (total). Shows the actual cost of borrowing in Brazil."
+      pt: "Taxa média de juros das novas concessões de crédito (total). Mostra o custo real do crédito no Brasil."
+    keywords: ["emprestimo", "empréstimo", "lending", "taxa de juros média"]
+
+  bcb_household_debt:
+    label: "Endividamento Famílias"
+    unit: "% renda"
+    source: "BCB"
+    color: "#f43f5e"
+    freshness_hours: 1440
+    domain: credit
+    description:
+      en: "Household debt to income ratio. Above 25% signals financial stress. Key indicator for consumer spending capacity."
+      pt: "Relação dívida/renda das famílias. Acima de 25% sinaliza estresse financeiro. Indicador-chave de capacidade de consumo."
+    keywords: ["endividamento", "household debt", "divida familias"]
+
+  bcb_ibc_br:
+    label: "IBC-Br"
+    unit: "Index"
+    source: "BCB"
+    color: "#0891b2"
+    freshness_hours: 1080
+    domain: activity
+    description:
+      en: "IBC-Br economic activity index (BCB GDP proxy, seasonally adjusted). Monthly frequency vs quarterly GDP — the fastest official activity gauge."
+      pt: "Índice de atividade econômica IBC-Br (proxy mensal do PIB, dessazonalizado). Frequência mensal vs PIB trimestral — o indicador oficial de atividade mais rápido."
+    keywords: ["ibc-br", "ibc", "atividade econômica", "economic activity"]
+
+  bcb_debt_gdp:
+    label: "Dívida/PIB"
+    unit: "% PIB"
+    source: "BCB"
+    color: "#ea580c"
+    freshness_hours: 720
+    domain: fiscal
+    description:
+      en: "Net public debt as % of GDP. THE metric for sovereign risk — what rating agencies watch most closely."
+      pt: "Dívida pública líquida como % do PIB. O principal indicador de risco soberano — o mais observado pelas agências de rating."
+    keywords: ["divida", "dívida", "debt gdp", "divida pib"]
+
+  bcb_fiscal_balance:
+    label: "Resultado Primário"
+    unit: "% PIB"
+    source: "BCB"
+    color: "#c2410c"
+    freshness_hours: 720
+    domain: fiscal
+    description:
+      en: "Primary fiscal balance (12-month accumulated, % GDP). Positive = surplus, negative = deficit. Drives CDS spreads and long-term yields."
+      pt: "Resultado primário consolidado (acumulado 12 meses, % PIB). Positivo = superávit, negativo = déficit. Influencia CDS e juros longos."
+    keywords: ["resultado primário", "fiscal", "superavit", "superávit", "deficit", "déficit"]
+
+  bcb_trade_balance:
+    label: "Balança Comercial"
+    unit: "USD mi"
+    source: "BCB"
+    color: "#059669"
+    freshness_hours: 1440
+    domain: external
+    description:
+      en: "Trade balance (exports minus imports) in USD millions. Positive = surplus. Key driver of BRL and current account."
+      pt: "Balança comercial (exportações menos importações) em USD milhões. Positivo = superávit. Fator-chave do câmbio e conta corrente."
+    keywords: ["balança comercial", "trade balance", "exportações", "importações"]
+
+  bcb_reserves:
+    label: "Reservas Internacionais"
+    unit: "USD mi"
+    source: "BCB"
+    color: "#047857"
+    freshness_hours: 720
+    domain: external
+    description:
+      en: "International reserves in USD millions. Buffer against external shocks and currency crises."
+      pt: "Reservas internacionais em USD milhões. Colchão contra choques externos e crises cambiais."
+    keywords: ["reservas", "reserves"]
+
+  bcb_ibovespa:
+    label: "IBOVESPA"
+    unit: "Points"
+    source: "BCB"
+    color: "#ca8a04"
+    freshness_hours: 72
+    domain: equity
+    description:
+      en: "IBOVESPA index closing value. Main Brazilian stock market benchmark, heavily weighted toward commodities and banks."
+      pt: "Valor de fechamento do índice IBOVESPA. Principal benchmark do mercado de ações brasileiro, concentrado em commodities e bancos."
+    keywords: ["ibovespa", "bolsa", "bovespa", "stock"]
+
+  bcb_consumer_confidence:
+    label: "Confiança Consumidor"
+    unit: "Index"
+    source: "BCB"
+    color: "#65a30d"
+    freshness_hours: 720
+    domain: sentiment
+    description:
+      en: "Consumer confidence index (ICC/FGV). Leading indicator for retail spending. Higher = more optimistic households."
+      pt: "Índice de confiança do consumidor (ICC/FGV). Indicador antecedente do consumo no varejo. Maior = famílias mais otimistas."
+    keywords: ["confiança consumidor", "consumer confidence", "icc"]
+
+  bcb_industry_confidence:
+    label: "Confiança Indústria"
+    unit: "Index"
+    source: "BCB"
+    color: "#4d7c0f"
+    freshness_hours: 720
+    domain: sentiment
+    description:
+      en: "Industry confidence index (ICI/FGV). Leading indicator for industrial production and investment."
+      pt: "Índice de confiança da indústria (ICI/FGV). Indicador antecedente da produção industrial e investimento."
+    keywords: ["confiança indústria", "industry confidence", "ici"]
+
+  bcb_m1:
+    label: "M1"
+    unit: "R$ mi"
+    source: "BCB"
+    color: "#0284c7"
+    freshness_hours: 720
+    domain: monetary
+    description:
+      en: "M1 money supply (currency in circulation + demand deposits). Narrow money — most liquid monetary aggregate."
+      pt: "Oferta monetária M1 (papel-moeda + depósitos à vista). Agregado monetário mais restrito e líquido."
+    keywords: ["m1", "oferta monetária", "money supply"]
+
+  bcb_m2:
+    label: "M2"
+    unit: "R$ mi"
+    source: "BCB"
+    color: "#0369a1"
+    freshness_hours: 720
+    domain: monetary
+    description:
+      en: "M2 money supply (M1 + savings deposits + time deposits). Broad money indicator — tracks overall liquidity in the economy."
+      pt: "Oferta monetária M2 (M1 + poupança + depósitos a prazo). Indicador de liquidez ampla — mede a liquidez total na economia."
+    keywords: ["m2"]
+
+  fred_brent:
+    label: "Petróleo Brent"
+    unit: "USD/bbl"
+    source: "FRED"
+    color: "#854d0e"
+    freshness_hours: 72
+    domain: commodities
+    description:
+      en: "Brent crude oil price (USD/barrel). Key driver of Brazilian trade balance and Petrobras revenue."
+      pt: "Preço do petróleo Brent (USD/barril). Fator-chave da balança comercial e receita da Petrobras."
+    keywords: ["petróleo", "brent", "oil", "petroleo"]
+
+  fred_iron_ore:
+    label: "Minério de Ferro"
+    unit: "USD/t"
+    source: "FRED"
+    color: "#92400e"
+    freshness_hours: 720
+    domain: commodities
+    description:
+      en: "Iron ore price (62% Fe, USD/dry metric ton). Brazil's #1 export commodity — directly impacts Vale and trade balance."
+      pt: "Preço do minério de ferro (62% Fe, USD/tonelada seca). Principal commodity de exportação do Brasil — impacta Vale e balança comercial."
+    keywords: ["minério de ferro", "iron ore", "minerio", "vale"]
+
+  fred_soybeans:
+    label: "Soja"
+    unit: "USD/t"
+    source: "FRED"
+    color: "#a16207"
+    freshness_hours: 720
+    domain: commodities
+    description:
+      en: "Soybeans price (USD/metric ton). Brazil is the world's largest producer — agribusiness drives rural GDP."
+      pt: "Preço da soja (USD/tonelada métrica). Brasil é o maior produtor mundial — agronegócio impulsiona o PIB rural."
+    keywords: ["soja", "soybeans", "soybean", "agro"]
+
+  fred_fedfunds:
+    label: "Fed Funds Rate"
+    unit: "%"
+    source: "FRED"
+    color: "#475569"
+    freshness_hours: 720
+    domain: international
+    description:
+      en: "US Federal Funds effective rate. Global risk-free reference — the spread vs SELIC drives capital flows to/from Brazil."
+      pt: "Taxa efetiva dos Fed Funds dos EUA. Referência global de taxa livre de risco — o spread vs SELIC determina fluxos de capital."
+    keywords: ["fed funds", "fed", "federal reserve", "us rate"]
+
+  fred_uscpi:
+    label: "CPI EUA"
+    unit: "Index"
+    source: "FRED"
+    color: "#64748b"
+    freshness_hours: 720
+    domain: international
+    description:
+      en: "US Consumer Price Index (1982-84=100). US inflation trajectory influences Fed policy, which in turn affects emerging markets including Brazil."
+      pt: "Índice de preços ao consumidor dos EUA (1982-84=100). Trajetória da inflação americana influencia política do Fed, que afeta mercados emergentes como o Brasil."
+    keywords: ["cpi eua", "us cpi", "us inflation", "inflação eua"]
+
+  focus_ipca:
+    label: "FOCUS IPCA"
+    unit: "% a.a."
+    source: "BCB FOCUS"
+    color: "#c026d3"
+    freshness_hours: 168
+    domain: inflation
+    description:
+      en: "Market consensus expectation for year-end IPCA inflation. Updated weekly (Monday). 120+ financial institutions surveyed."
+      pt: "Expectativa de consenso do mercado para IPCA no fim do ano. Atualizado semanalmente (segunda-feira). 120+ instituições pesquisadas."
+    keywords: ["focus ipca", "expectativa ipca", "ipca expectation"]
+
+  focus_selic:
+    label: "FOCUS SELIC"
+    unit: "% a.a."
+    source: "BCB FOCUS"
+    color: "#d946ef"
+    freshness_hours: 168
+    domain: monetary_policy
+    description:
+      en: "Market consensus expectation for year-end SELIC rate. The gap between FOCUS consensus and DI curve pricing signals market positioning."
+      pt: "Expectativa de consenso do mercado para SELIC no fim do ano. A diferença entre FOCUS e curva DI sinaliza posicionamento do mercado."
+    keywords: ["focus selic", "expectativa selic", "selic expectation"]
+
+  focus_gdp:
+    label: "FOCUS PIB"
+    unit: "% a.a."
+    source: "BCB FOCUS"
+    color: "#e879f9"
+    freshness_hours: 168
+    domain: output
+    description:
+      en: "Market consensus expectation for annual GDP growth. Leading indicator for economic outlook."
+      pt: "Expectativa de consenso do mercado para crescimento do PIB anual. Indicador antecedente da perspectiva econômica."
+    keywords: ["focus pib", "focus gdp", "expectativa pib", "gdp expectation"]
+
+  focus_fx:
+    label: "FOCUS Câmbio"
+    unit: "R$/USD"
+    source: "BCB FOCUS"
+    color: "#f0abfc"
+    freshness_hours: 168
+    domain: exchange_rate
+    description:
+      en: "Market consensus expectation for year-end USD/BRL exchange rate."
+      pt: "Expectativa de consenso do mercado para câmbio USD/BRL no fim do ano."
+    keywords: ["focus cambio", "focus câmbio", "expectativa cambio", "fx expectation"]
+
+  wb_gdp_growth:
+    label: "PIB Brasil (WB)"
+    unit: "% a.a."
+    source: "World Bank"
+    color: "#334155"
+    freshness_hours: 2160
+    domain: international
+    description:
+      en: "Brazil GDP growth rate (annual %) from World Bank. Comparable cross-country methodology."
+      pt: "Crescimento do PIB do Brasil (% anual) pelo Banco Mundial. Metodologia comparável entre países."
+    keywords: ["gdp growth wb", "crescimento pib wb"]
+
+  wb_cpi:
+    label: "Inflação Brasil (WB)"
+    unit: "% a.a."
+    source: "World Bank"
+    color: "#475569"
+    freshness_hours: 2160
+    domain: international
+    description:
+      en: "Brazil CPI inflation (annual %) from World Bank. Enables cross-country inflation comparison."
+      pt: "Inflação pelo IPC do Brasil (% anual) pelo Banco Mundial. Permite comparação internacional."
+    keywords: ["cpi wb", "inflation wb"]
+
+  wb_unemployment:
+    label: "Desemprego Brasil (WB)"
+    unit: "%"
+    source: "World Bank"
+    color: "#64748b"
+    freshness_hours: 2160
+    domain: international
+    description:
+      en: "Brazil unemployment rate (% of labor force) from World Bank (ILO estimate)."
+      pt: "Taxa de desemprego do Brasil (% da força de trabalho) pelo Banco Mundial (estimativa OIT)."
+    keywords: ["unemployment wb", "desemprego wb"]
+
+  wb_current_account:
+    label: "Conta Corrente (WB)"
+    unit: "USD"
+    source: "World Bank"
+    color: "#94a3b8"
+    freshness_hours: 2160
+    domain: international
+    description:
+      en: "Brazil current account balance (USD) from World Bank. Negative = deficit, importing more capital than exporting."
+      pt: "Saldo em conta corrente do Brasil (USD) pelo Banco Mundial. Negativo = déficit, importando mais capital do que exportando."
+    keywords: ["conta corrente wb", "current account wb"]
+
+  ons_electricity:
+    label: "Carga Elétrica"
+    unit: "MWmed"
+    source: "ONS"
+    color: "#eab308"
+    freshness_hours: 48
+    domain: activity
+    description:
+      en: "Daily national electricity load (sum of 4 subsystems). Real-time GDP proxy — daily frequency with zero lag while official GDP lags 2-3 months. No other free Brazilian platform offers this."
+      pt: "Carga diária nacional de energia elétrica (soma dos 4 subsistemas). Proxy do PIB em tempo real — frequência diária sem defasagem enquanto PIB oficial atrasa 2-3 meses."
+    keywords: ["eletricidade", "electricity", "energia", "energy", "carga", "ons"]
 
 app:
   title: "Veredas"
