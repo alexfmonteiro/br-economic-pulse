@@ -1,4 +1,4 @@
-# BR Economic Pulse — Claude Code Instructions
+# Veredas — Claude Code Instructions
 
 Read SPEC.md for the full project specification. This file contains
 the architectural invariants that MUST be followed in every session.

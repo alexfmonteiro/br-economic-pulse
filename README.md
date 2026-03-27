@@ -1,4 +1,4 @@
-# BR Economic Pulse
+# Veredas
 
 A Brazilian macroeconomic data dashboard with natural-language query support. It fetches data from BCB, IBGE, and Tesouro Nacional, processes it through a medallion pipeline (bronze/silver/gold), and serves it via an interactive React dashboard and natural language query interface.
 
@@ -8,23 +8,23 @@ A Brazilian macroeconomic data dashboard with natural-language query support. It
 GitHub Actions (cron 06:00 UTC)
         |
         v
- +--------------+     +-----------------+     +-------------+
+ +---------------+     +-----------------+     +-------------+
  | IngestionTask | --> | QualityTask     | --> | Transform.  |
- | (BCB, IBGE,  |     | (post-ingest)   |     | Task        |
- |  Tesouro)    |     +-----------------+     +------+------+
- +--------------+                                     |
+ | (BCB, IBGE,   |     | (post-ingest)   |     | Task        |
+ |  Tesouro)     |     +-----------------+     +------+------+
+ +---------------+                                     |
                                                       v
-                                              +-----------------+
-                                              | QualityTask     |
-                                              | (post-transform)|
-                                              +--------+--------+
+                                              +------------------+
+                                              | QualityTask      |
+                                              | (post-transform) |
+                                              +--------+---------+
                                                        |
                    +-----------------------------------+
                    v                                   v
-          +----------------+                  +-----------------+
-          | Cloudflare R2  |  -- sync -->     | Railway (API)   |
-          | bronze/silver/ |  webhook         | FastAPI + DuckDB|
-          | gold Parquet   |                  +---------+-------+
+          +----------------+                  +------------------+
+          | Cloudflare R2  |  -- sync -->     | Railway (API)    |
+          | bronze/silver/ |  webhook         | FastAPI + DuckDB |
+          | gold Parquet   |                  +---------+--------+
           +----------------+                            |
                                                         v
                                                +-----------------+
@@ -68,8 +68,8 @@ GitHub Actions (cron 06:00 UTC)
 
 ```bash
 # Clone
-git clone https://github.com/<your-username>/br-economic-pulse.git
-cd br-economic-pulse
+git clone https://github.com/<your-username>/veredas.git
+cd veredas
 
 # Python dependencies
 uv sync

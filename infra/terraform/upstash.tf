@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 resource "upstash_redis_database" "cache" {
-  database_name  = "br_economic_pulse"
+  database_name  = "veredas"
   region         = "global"
   primary_region = "us-east-1"
   tls            = true

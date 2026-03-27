@@ -5,7 +5,7 @@
 #
 #   terraform {
 #     backend "s3" {
-#       bucket   = "br-economic-pulse-tfstate"
+#       bucket   = "veredas-tfstate"
 #       key      = "terraform.tfstate"
 #       region   = "auto"
 #       endpoint = "https://<account_id>.r2.cloudflarestorage.com"

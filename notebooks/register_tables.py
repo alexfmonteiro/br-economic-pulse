@@ -32,7 +32,7 @@ def _(duckdb, os):
     _token = os.environ.get("R2_CATALOG_TOKEN", "")
     _warehouse = os.environ.get("R2_CATALOG_WAREHOUSE", "")
     _catalog_uri = os.environ.get("R2_CATALOG_URI", "")
-    _bucket = os.environ.get("R2_BUCKET_NAME", "br-economic-pulse-data")
+    _bucket = os.environ.get("R2_BUCKET_NAME", "veredas-data")
     _key_id = os.environ.get("R2_ACCESS_KEY_ID", "")
     _secret = os.environ.get("R2_SECRET_ACCESS_KEY", "")
     _account_id = os.environ.get("R2_ACCOUNT_ID", "")

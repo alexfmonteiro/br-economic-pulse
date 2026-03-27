@@ -1,4 +1,4 @@
-# Contributing to BR Economic Pulse
+# Contributing to Veredas
 
 ## Philosophy
 

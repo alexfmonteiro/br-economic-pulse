@@ -28,7 +28,7 @@ logger = structlog.get_logger()
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="BR Economic Pulse pipeline")
+    parser = argparse.ArgumentParser(description="Veredas pipeline")
     parser.add_argument(
         "--backfill",
         action="store_true",

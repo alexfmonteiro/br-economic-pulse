@@ -137,7 +137,7 @@ export function LandingPage() {
           {t.landing.openSourceDesc}
         </p>
         <a
-          href="https://github.com/alexmonteiro/br-economic-pulse"
+          href="https://github.com/alexmonteiro/veredas"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/50 px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-slate-100 hover:border-slate-600/50 transition-colors"
@@ -152,13 +152,13 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-slate-800 px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <span className="font-medium text-slate-400">BR Economic Pulse</span>
+          <span className="font-medium text-slate-400">Veredas</span>
           <div className="flex items-center gap-4">
             <Link to="/about" className="hover:text-slate-300 transition-colors">{t.nav.about}</Link>
             <Link to="/dashboard" className="hover:text-slate-300 transition-colors">{t.nav.dashboard}</Link>
             <Link to="/quality" className="hover:text-slate-300 transition-colors">{t.nav.quality}</Link>
             <a
-              href="https://github.com/alexmonteiro/br-economic-pulse"
+              href="https://github.com/alexmonteiro/veredas"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-slate-300 transition-colors"

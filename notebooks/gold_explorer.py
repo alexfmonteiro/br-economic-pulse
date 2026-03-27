@@ -31,7 +31,7 @@ def _(duckdb, os):
     conn.execute("INSTALL iceberg; LOAD iceberg;")
     conn.execute("INSTALL httpfs; LOAD httpfs;")
 
-    bucket = os.environ.get("R2_BUCKET_NAME", "br-economic-pulse-data")
+    bucket = os.environ.get("R2_BUCKET_NAME", "veredas-data")
 
     # R2 storage secret (for raw parquet fallback)
     key_id = os.environ.get("R2_ACCESS_KEY_ID", "")

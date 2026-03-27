@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# BR Economic Pulse — Terraform Configuration (Phase 1: v1.5)
+# Veredas — Terraform Configuration (Phase 1: v1.5)
 #
 # Manages: Cloudflare R2, Neon Postgres, Upstash Redis, Sentry
 # See ADR-007 for phased adoption strategy.

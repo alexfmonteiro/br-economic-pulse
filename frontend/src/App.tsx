@@ -47,7 +47,7 @@ function NavBar() {
     <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 gap-1">
         <NavLink to="/" className="text-lg font-bold text-slate-100 mr-4 shrink-0 whitespace-nowrap">
-          BR Economic Pulse
+          Veredas
         </NavLink>
 
         {/* Desktop nav */}

@@ -1,6 +1,6 @@
 # Service Level Objectives (SLOs)
 
-> Initial SLO definitions for BR Economic Pulse. These targets guide
+> Initial SLO definitions for Veredas. These targets guide
 > alerting thresholds and architectural decisions. Revisit quarterly
 > as usage patterns emerge.
 

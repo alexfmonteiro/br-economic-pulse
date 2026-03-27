@@ -5,16 +5,16 @@
 resource "sentry_project" "api" {
   organization = var.sentry_organization
   teams        = [var.sentry_team]
-  name         = "br-economic-pulse-api"
-  slug         = "br-economic-pulse-api"
+  name         = "veredas-api"
+  slug         = "veredas-api"
   platform     = "python-fastapi"
 }
 
 resource "sentry_project" "frontend" {
   organization = var.sentry_organization
   teams        = [var.sentry_team]
-  name         = "br-economic-pulse-frontend"
-  slug         = "br-economic-pulse-frontend"
+  name         = "veredas-frontend"
+  slug         = "veredas-frontend"
   platform     = "javascript-react"
 }
 

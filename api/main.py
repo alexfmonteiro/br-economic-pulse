@@ -1,4 +1,4 @@
-"""FastAPI application — BR Economic Pulse API."""
+"""FastAPI application — Veredas API."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ logger = structlog.get_logger()
 _conversation_history: dict[str, list[dict[str, str]]] = {}
 
 _MAX_HISTORY_TURNS = 10
-_SESSION_COOKIE_NAME = "br_ep_session"
+_SESSION_COOKIE_NAME = "veredas_session"
 
 # Strong references to fire-and-forget tasks so they aren't garbage-collected
 # before completion.  See: https://docs.python.org/3/library/asyncio-task.html
@@ -93,7 +93,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
 
-app = FastAPI(title="BR Economic Pulse API", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="Veredas API", version="0.5.0", lifespan=lifespan)
 
 # --- Middleware ---
 
@@ -617,7 +617,7 @@ async def debug_sentry() -> dict[str, str]:
     """Raise a test exception to verify Sentry is capturing errors."""
     if os.environ.get("APP_ENV", "development") == "production":
         raise HTTPException(status_code=404, detail="Not found")
-    raise RuntimeError("Sentry test error from BR Economic Pulse API")
+    raise RuntimeError("Sentry test error from Veredas API")
 
 
 @app.post(

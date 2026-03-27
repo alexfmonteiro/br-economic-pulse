@@ -17,7 +17,7 @@ from fastapi import Request, Response
 logger = structlog.get_logger()
 
 _DAILY_QUERY_LIMIT = 10
-_SESSION_COOKIE_NAME = "br_ep_session"
+_SESSION_COOKIE_NAME = "veredas_session"
 _SESSION_TOKEN_BYTES = 32
 
 

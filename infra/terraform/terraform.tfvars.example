@@ -4,11 +4,11 @@
 # Cloudflare
 cloudflare_api_token  = ""
 cloudflare_account_id = ""
-r2_bucket_name        = "br-economic-pulse-data"
+r2_bucket_name        = "veredas-data"
 
 # Neon
 neon_api_key      = ""
-neon_project_name  = "br_economic_pulse"
+neon_project_name  = "veredas"
 neon_database_name = "neondb"
 neon_region       = "aws-us-east-1"
 

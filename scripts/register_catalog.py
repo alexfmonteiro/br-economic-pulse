@@ -49,7 +49,7 @@ def main() -> None:
     token = os.environ.get("R2_CATALOG_TOKEN", "")
     warehouse = os.environ.get("R2_CATALOG_WAREHOUSE", "")
     catalog_uri = os.environ.get("R2_CATALOG_URI", "")
-    bucket = os.environ.get("R2_BUCKET_NAME", "br-economic-pulse-data")
+    bucket = os.environ.get("R2_BUCKET_NAME", "veredas-data")
     account_id = os.environ.get("R2_ACCOUNT_ID", "")
     key_id = os.environ.get("R2_ACCESS_KEY_ID", "")
     secret = os.environ.get("R2_SECRET_ACCESS_KEY", "")

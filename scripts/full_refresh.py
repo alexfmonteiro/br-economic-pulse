@@ -218,14 +218,14 @@ def trigger_sync(dry_run: bool = False) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Full data refresh for BR Economic Pulse")
+    parser = argparse.ArgumentParser(description="Full data refresh for Veredas")
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without doing it")
     parser.add_argument("--skip-r2-cleanup", action="store_true", help="Skip deleting R2 files before upload")
     return parser.parse_args()
 
 
 async def _async_main(args: argparse.Namespace) -> None:
-    print("BR Economic Pulse — Full Data Refresh")
+    print("Veredas — Full Data Refresh")
     if args.dry_run:
         print("(DRY RUN — no changes will be made)")
 

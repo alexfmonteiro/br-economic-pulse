@@ -17,7 +17,7 @@ variable "cloudflare_account_id" {
 variable "r2_bucket_name" {
   description = "Name of the R2 bucket for pipeline data"
   type        = string
-  default     = "br-economic-pulse-data"
+  default     = "veredas-data"
 }
 
 # -----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ variable "neon_api_key" {
 variable "neon_project_name" {
   description = "Neon project name"
   type        = string
-  default     = "br_economic_pulse"
+  default     = "veredas"
 }
 
 variable "neon_database_name" {

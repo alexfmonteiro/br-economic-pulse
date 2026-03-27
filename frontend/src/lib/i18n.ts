@@ -4,7 +4,7 @@ export const translations = {
   en: {
     nav: { home: 'Home', dashboard: 'Dashboard', analytics: 'Analytics', askAi: 'Ask AI', quality: 'Quality', about: 'About' },
     hero: {
-      title: 'BR Economic Pulse',
+      title: 'Veredas',
       subtitle: 'Real-time Brazilian macroeconomic indicators',
       dataQualityLink: 'View data quality',
       dataSourceFooter: 'Data sourced from BCB, IBGE, and Tesouro Nacional.',
@@ -38,7 +38,7 @@ export const translations = {
       step3Title: 'Actionable Insights',
       step3Desc: 'Query data in natural language, explore charts, and monitor economic trends.',
       openSourceTitle: 'Open Source',
-      openSourceDesc: 'BR Economic Pulse is open source. Explore the code, contribute, or deploy your own instance.',
+      openSourceDesc: 'Veredas is open source. Explore the code, contribute, or deploy your own instance.',
       viewOnGithub: 'View on GitHub',
       footerLinks: 'Links',
     },
@@ -105,7 +105,7 @@ export const translations = {
       pipelineQuality: 'Pipeline Quality',
     },
     about: {
-      title: 'About BR Economic Pulse',
+      title: 'About Veredas',
       subtitle: 'A macroeconomic dashboard for Brazil with AI-generated insights',
       architecture: 'Architecture',
       techStack: 'Tech Stack',
@@ -155,7 +155,7 @@ export const translations = {
   pt: {
     nav: { home: 'Início', dashboard: 'Painel', analytics: 'Analítico', askAi: 'Pergunte à IA', quality: 'Qualidade', about: 'Sobre' },
     hero: {
-      title: 'BR Economic Pulse',
+      title: 'Veredas',
       subtitle: 'Indicadores macroeconômicos brasileiros em tempo real',
       dataQualityLink: 'Ver qualidade dos dados',
       dataSourceFooter: 'Dados provenientes do BCB, IBGE e Tesouro Nacional.',
@@ -189,7 +189,7 @@ export const translations = {
       step3Title: 'Insights Acionáveis',
       step3Desc: 'Consulte dados em linguagem natural, explore gráficos e monitore tendências econômicas.',
       openSourceTitle: 'Código Aberto',
-      openSourceDesc: 'BR Economic Pulse é código aberto. Explore o código, contribua ou implante sua própria instância.',
+      openSourceDesc: 'Veredas é código aberto. Explore o código, contribua ou implante sua própria instância.',
       viewOnGithub: 'Ver no GitHub',
       footerLinks: 'Links',
     },
@@ -256,7 +256,7 @@ export const translations = {
       pipelineQuality: 'Qualidade do Pipeline',
     },
     about: {
-      title: 'Sobre o BR Economic Pulse',
+      title: 'Sobre o Veredas',
       subtitle: 'Um painel macroeconômico para o Brasil com insights gerados por IA',
       architecture: 'Arquitetura',
       techStack: 'Stack Tecnológico',

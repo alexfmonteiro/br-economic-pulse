@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download all fixture data for BR Economic Pulse tests.
+Download all fixture data for Veredas tests.
 
 Covers Step 0.4 of the Execution Playbook:
 - BCB series: SELIC (432), IPCA (433), USD/BRL (1)

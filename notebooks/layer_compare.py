@@ -37,7 +37,7 @@ def _(duckdb, os):
             ACCOUNT_ID '{os.environ.get("R2_ACCOUNT_ID", "")}'
         );
     """)
-    bucket = os.environ.get("R2_BUCKET_NAME", "br-economic-pulse-data")
+    bucket = os.environ.get("R2_BUCKET_NAME", "veredas-data")
     return bucket, conn
 
 

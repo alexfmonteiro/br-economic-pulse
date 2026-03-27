@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-BR Economic Pulse requires both a data pipeline (ingestion, transformation,
+Veredas requires both a data pipeline (ingestion, transformation,
 quality checks, AI agents) and an interactive frontend dashboard. We needed
 to decide whether to use a single language across the stack or split between
 Python and TypeScript.
