@@ -1,0 +1,226 @@
+# Domain configuration: Brazilian Macroeconomic Data
+# Used by Veredas to configure all domain-specific behavior.
+
+domain:
+  id: br_macro
+  name: "Veredas Brazil"
+  description: "Brazilian macroeconomic data intelligence"
+  country: "Brazil"
+  country_code: "BR"
+  currency: "BRL"
+  currency_symbol: "R$"
+  timezone: "America/Sao_Paulo"
+  default_language: "pt"
+  supported_languages: ["en", "pt"]
+
+ai:
+  scope_description:
+    en: "Brazilian economic data analysis"
+    pt: "análise de dados econômicos brasileiros"
+  analyst_role:
+    en: "economic data analyst for Brazilian macroeconomic indicators"
+    pt: "analista de dados econômicos para indicadores macroeconômicos brasileiros"
+  safety_message:
+    en: >-
+      Your question was blocked by our safety filter.
+      My scope is **exclusively {scope}**.
+      Please rephrase your question about indicators such as {example_indicators}.
+    pt: >-
+      Sua pergunta foi bloqueada pelo nosso filtro de segurança.
+      Meu escopo é **exclusivamente {scope}**.
+      Por favor, reformule sua pergunta sobre indicadores como {example_indicators}.
+  example_indicators:
+    en: "SELIC, IPCA, exchange rate, GDP, unemployment"
+    pt: "SELIC, IPCA, câmbio, PIB, desemprego"
+  anomaly_context:
+    en: >-
+      Consider Brazilian macroeconomic history: Plano Real (1994),
+      2008 crisis, 2015-16 recession, 2020 pandemic.
+    pt: >-
+      Considere a história macroeconômica brasileira: Plano Real (1994),
+      crise de 2008, recessão 2015-16, pandemia 2020.
+
+data_sources:
+  - id: bcb
+    name: "Banco Central do Brasil (BCB)"
+    url: "https://www3.bcb.gov.br/sgspub/"
+    description:
+      en: "Interest rates (SELIC), inflation (IPCA), exchange rates (USD/BRL)"
+      pt: "Taxas de juros (SELIC), inflação (IPCA), câmbio (USD/BRL)"
+  - id: ibge
+    name: "Instituto Brasileiro de Geografia e Estatística (IBGE)"
+    url: "https://sidra.ibge.gov.br/"
+    description:
+      en: "Unemployment (PNAD), GDP, industrial production"
+      pt: "Desemprego (PNAD), PIB, produção industrial"
+  - id: tesouro
+    name: "Tesouro Nacional"
+    url: "https://www.tesourotransparente.gov.br/"
+    description:
+      en: "Government bond yields (Prefixado, IPCA+)"
+      pt: "Rendimentos de títulos públicos (Prefixado, IPCA+)"
+
+router:
+  direct_lookup_patterns:
+    - pattern: "(what|qual|quanto).*(current|atual|hoje|today|now|latest|último|ultima).*({keywords})"
+      handler: latest_value
+    - pattern: "(what|qual).*(latest|último|ultima|last|recent).*({keywords}|rate|taxa)"
+      handler: latest_value
+    - pattern: "(last|ultimo|última).*(value|valor|dado).*({keywords})"
+      handler: latest_value
+
+series:
+  bcb_selic:
+    label: "SELIC"
+    unit: "% a.a."
+    source: "BCB"
+    color: "#3b82f6"
+    freshness_hours: 72
+    domain: monetary_policy
+    description:
+      en: "Benchmark interest rate (taxa SELIC meta) set by Brazil's central bank (COPOM). Higher = tighter monetary policy."
+      pt: "Taxa básica de juros definida pelo Banco Central. SELIC mais alta encarece o crédito e freia a inflação; mais baixa estimula empréstimos e o crescimento."
+    keywords: ["selic"]
+
+  bcb_ipca:
+    label: "IPCA"
+    unit: "% a.m."
+    source: "BCB"
+    color: "#8b5cf6"
+    freshness_hours: 1080
+    domain: inflation
+    description:
+      en: "Official month-over-month consumer inflation index (IPCA). Above ~0.5%/month signals strong inflationary pressure."
+      pt: "Índice oficial de preços ao consumidor, medido mês a mês. Valores positivos indicam alta de preços; acima de ~0,5% ao mês sinaliza pressão inflacionária forte."
+    keywords: ["ipca", "inflação", "inflation"]
+
+  bcb_usd_brl:
+    label: "USD/BRL"
+    unit: "R$"
+    source: "BCB"
+    color: "#22c55e"
+    freshness_hours: 72
+    domain: exchange_rate
+    description:
+      en: "Exchange rate: how many reais one US dollar buys. Rising = real weakening."
+      pt: "Quantos reais um dólar americano compra. Taxa em alta significa que o real está perdendo valor, encarecendo importações."
+    keywords: ["dolar", "dollar", "usd", "cambio", "câmbio"]
+
+  ibge_pnad:
+    label: "Taxa de Desemprego"
+    unit: "%"
+    source: "IBGE"
+    color: "#f59e0b"
+    freshness_hours: 2400
+    domain: labor_market
+    description:
+      en: "Unemployment rate from IBGE PNAD household survey. Percentage of working-age population seeking but not finding work."
+      pt: "Parcela da população economicamente ativa que procura emprego e não encontra. Medida trimestralmente pela PNAD do IBGE."
+    keywords: ["desemprego", "unemployment"]
+
+  ibge_gdp:
+    label: "PIB"
+    unit: "R$ bi"
+    source: "IBGE"
+    color: "#06b6d4"
+    freshness_hours: 1080
+    domain: output
+    description:
+      en: "GDP monthly proxy (BCB series 4380) in R$ billions, current prices. Broadest measure of economic output."
+      pt: "Valor total de bens e serviços produzidos no Brasil, em bilhões de reais. É a medida mais ampla da atividade econômica."
+    keywords: ["pib", "gdp"]
+
+  tesouro_prefixado_curto:
+    label: "Prefixado Curto"
+    unit: "% a.a."
+    source: "Tesouro"
+    color: "#ec4899"
+    freshness_hours: 72
+    domain: fixed_income
+    description:
+      en: "Average yield of pre-fixed government bonds (Tesouro Prefixado) maturing within 3 years. Reflects near-term market interest rate expectations."
+      pt: "Média das taxas dos títulos prefixados (Tesouro Prefixado) com vencimento em até 3 anos. Reflete as expectativas de juros no curto prazo."
+    keywords: ["tesouro", "prefixado", "prefixado curto"]
+
+  tesouro_prefixado_longo:
+    label: "Prefixado Longo"
+    unit: "% a.a."
+    source: "Tesouro"
+    color: "#f472b6"
+    freshness_hours: 72
+    domain: fixed_income
+    description:
+      en: "Average yield of pre-fixed government bonds (Tesouro Prefixado) maturing beyond 3 years. Reflects long-term rate expectations. The spread vs short-term indicates yield curve slope."
+      pt: "Média das taxas dos títulos prefixados (Tesouro Prefixado) com vencimento acima de 3 anos. Reflete expectativas de juros no longo prazo. Compare com o curto para avaliar a inclinação da curva."
+    keywords: ["prefixado longo"]
+
+  tesouro_ipca:
+    label: "Juros Real (IPCA+)"
+    unit: "% a.a."
+    source: "Tesouro"
+    color: "#fb923c"
+    freshness_hours: 72
+    domain: fixed_income
+    description:
+      en: "Average real yield of inflation-linked bonds (IPCA+, Educa+, Renda+). The real interest rate the market demands above IPCA inflation."
+      pt: "Média dos juros reais dos títulos atrelados à inflação (IPCA+, Educa+, Renda+). Mostra a taxa real de juros que o mercado exige acima da inflação."
+    keywords: ["juros real", "ntn-b"]
+
+app:
+  title: "Veredas"
+  session_cookie_name: "veredas_session"
+  meta_description:
+    en: "Data intelligence platform"
+    pt: "Plataforma de inteligência de dados"
+  github_url: "https://github.com/alexmonteiro/veredas"
+
+landing:
+  hero_title:
+    en: "Brazilian Economic Intelligence"
+    pt: "Inteligência Econômica Brasileira"
+  hero_subtitle:
+    en: "Real-time macroeconomic data, AI-powered analysis, and pipeline transparency — all in one place."
+    pt: "Dados macroeconômicos em tempo real, análise com IA e transparência do pipeline — tudo em um só lugar."
+  features:
+    - icon: chart
+      title:
+        en: "Real-Time Data"
+        pt: "Dados em Tempo Real"
+      description:
+        en: "Daily-updated indicators from BCB, IBGE, and Tesouro Nacional with automated quality checks."
+        pt: "Indicadores atualizados diariamente do BCB, IBGE e Tesouro Nacional com verificações automáticas de qualidade."
+    - icon: ai
+      title:
+        en: "AI-Powered Q&A"
+        pt: "Perguntas com IA"
+      description:
+        en: "Ask questions about Brazilian economic data in natural language and get sourced, data-backed answers."
+        pt: "Faça perguntas sobre dados econômicos brasileiros em linguagem natural e receba respostas com fontes."
+    - icon: alert
+      title:
+        en: "Anomaly Detection"
+        pt: "Detecção de Anomalias"
+      description:
+        en: "Statistical outlier detection flags unusual movements across interest rates, inflation, and exchange rates."
+        pt: "Detecção de outliers estatísticos sinaliza movimentos incomuns em juros, inflação e câmbio."
+    - icon: globe
+      title:
+        en: "Multilingual"
+        pt: "Multilíngue"
+      description:
+        en: "Full Portuguese and English support — data labels, AI responses, and interface."
+        pt: "Suporte completo em português e inglês — rótulos, respostas da IA e interface."
+    - icon: database
+      title:
+        en: "Open Data Sources"
+        pt: "Dados Abertos"
+      description:
+        en: "Built on official public data from the Central Bank, IBGE, and National Treasury."
+        pt: "Construído com dados públicos oficiais do Banco Central, IBGE e Tesouro Nacional."
+    - icon: eye
+      title:
+        en: "Pipeline Transparency"
+        pt: "Transparência do Pipeline"
+      description:
+        en: "Full observability into data ingestion, transformation, quality checks, and run history."
+        pt: "Observabilidade completa de ingestão, transformação, verificações de qualidade e histórico de execuções."
