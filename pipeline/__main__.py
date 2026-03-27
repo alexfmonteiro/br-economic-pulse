@@ -7,6 +7,7 @@ import asyncio
 import logging
 import sys
 from datetime import datetime, timezone
+from typing import Any
 
 import structlog
 from dotenv import load_dotenv
@@ -27,6 +28,8 @@ from tasks.transformation.task import TransformationTask  # noqa: E402
 
 logger = structlog.get_logger()
 
+VALID_STAGES = ["ingest", "quality-bronze", "transform", "quality-gold", "insight", "all"]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Veredas pipeline")
@@ -41,39 +44,116 @@ def parse_args() -> argparse.Namespace:
         choices=["debug", "info", "warning", "error"],
         help="Minimum log level (default: debug)",
     )
+    parser.add_argument(
+        "--stage",
+        default="all",
+        choices=VALID_STAGES,
+        help="Pipeline stage to run (default: all)",
+    )
+    parser.add_argument(
+        "--feed",
+        default="",
+        help="Comma-separated feed IDs to process (default: all active feeds)",
+    )
+    parser.add_argument(
+        "--list-feeds",
+        action="store_true",
+        help="List all active feed IDs and exit",
+    )
     return parser.parse_args()
 
 
+def filter_feeds(
+    feed_configs: dict[str, Any],
+    feed_arg: str,
+) -> dict[str, Any]:
+    """Filter feed_configs to only the requested feed IDs.
+
+    Raises SystemExit if any requested feed ID is not found.
+    """
+    if not feed_arg:
+        return feed_configs
+
+    requested = [f.strip() for f in feed_arg.split(",") if f.strip()]
+    unknown = [f for f in requested if f not in feed_configs]
+    if unknown:
+        print(f"Error: unknown feed IDs: {', '.join(unknown)}", file=sys.stderr)
+        print(f"Available: {', '.join(sorted(feed_configs.keys()))}", file=sys.stderr)
+        sys.exit(1)
+
+    return {k: v for k, v in feed_configs.items() if k in requested}
+
+
+def build_stages(
+    stage: str,
+    storage: Any,
+    feed_configs: dict[str, Any],
+    run_id: str,
+    backfill: bool,
+) -> list[BaseTask | BaseAgent]:
+    """Build the list of pipeline stages based on --stage flag."""
+    all_stages: dict[str, BaseTask | BaseAgent] = {
+        "ingest": IngestionTask(
+            storage=storage,
+            feed_configs=feed_configs,
+            run_id=run_id,
+            backfill=backfill,
+        ),
+        "quality-bronze": QualityTask(
+            storage=storage,
+            stage=PipelineStage.POST_INGESTION,
+            feed_configs=feed_configs,
+        ),
+        "transform": TransformationTask(
+            storage=storage,
+            feed_configs=feed_configs,
+        ),
+        "quality-gold": QualityTask(
+            storage=storage,
+            stage=PipelineStage.POST_TRANSFORMATION,
+            feed_configs=feed_configs,
+        ),
+        "insight": InsightAgent(),
+    }
+
+    if stage == "all":
+        return list(all_stages.values())
+
+    return [all_stages[stage]]
+
+
 async def main() -> int:
-    """Run the full pipeline: Ingest → Quality → Transform → Quality → Insight."""
+    """Run the pipeline with optional stage and feed filtering."""
     args = parse_args()
 
     level = getattr(logging, args.log_level.upper())
     structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(level))
 
-    storage = get_storage_backend()
     feed_configs = load_feed_configs()
-    run_id = f"pipeline-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
 
     if not feed_configs:
         logger.error("no_feed_configs", msg="No active feed configs found")
         return 1
 
+    if args.list_feeds:
+        for feed_id in sorted(feed_configs.keys()):
+            print(feed_id)
+        return 0
+
+    feed_configs = filter_feeds(feed_configs, args.feed)
+
+    storage = get_storage_backend()
+    run_id = f"pipeline-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+
     if args.backfill:
         logger.info("pipeline_backfill_mode", feeds=list(feed_configs.keys()))
 
-    stages: list[BaseTask | BaseAgent] = [
-        IngestionTask(
-            storage=storage,
-            feed_configs=feed_configs,
-            run_id=run_id,
-            backfill=args.backfill,
-        ),
-        QualityTask(storage=storage, stage=PipelineStage.POST_INGESTION, feed_configs=feed_configs),
-        TransformationTask(storage=storage, feed_configs=feed_configs),
-        QualityTask(storage=storage, stage=PipelineStage.POST_TRANSFORMATION, feed_configs=feed_configs),
-        InsightAgent(),
-    ]
+    if args.feed:
+        logger.info("pipeline_feed_filter", feeds=list(feed_configs.keys()))
+    if args.stage != "all":
+        logger.info("pipeline_stage_filter", stage=args.stage)
+
+    stages = build_stages(args.stage, storage, feed_configs, run_id, args.backfill)
 
     flow = PipelineFlow(storage=storage, trigger="local")
     result = await flow.run(stages)

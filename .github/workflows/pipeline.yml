@@ -9,37 +9,173 @@ on:
         description: "Fetch full historical data instead of daily delta"
         type: boolean
         default: false
+      stage:
+        description: "Pipeline stage to run"
+        type: choice
+        options:
+          - all
+          - ingest
+          - quality-bronze
+          - transform
+          - quality-gold
+          - insight
+        default: "all"
+      feeds:
+        description: "Comma-separated feed IDs (blank = all active feeds)"
+        type: string
+        default: ""
 
 concurrency:
   group: pipeline
   cancel-in-progress: false
 
+env:
+  STORAGE_BACKEND: r2
+  R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+  R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+  R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+  R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+  R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
 jobs:
-  run-pipeline:
-    name: Run data pipeline
+  # ---------- shared setup ----------
+  setup:
+    name: Setup
     runs-on: ubuntu-latest
-    env:
-      STORAGE_BACKEND: r2
-      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    outputs:
+      run_stage: ${{ inputs.stage || 'all' }}
+      run_feeds: ${{ inputs.feeds || '' }}
+      run_backfill: ${{ inputs.backfill == true && '--backfill' || '' }}
+      feed_flag: ${{ inputs.feeds && format('--feed {0}', inputs.feeds) || '' }}
+    steps:
+      - run: echo "stage=${{ inputs.stage || 'all' }} feeds=${{ inputs.feeds || '(all)' }}"
+
+  # ---------- ingest ----------
+  ingest:
+    name: "Ingest (Bronze)"
+    needs: setup
+    if: >-
+      needs.setup.outputs.run_stage == 'all' ||
+      needs.setup.outputs.run_stage == 'ingest'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run ingestion
+        run: >-
+          uv run python -m pipeline.flow
+          --stage ingest
+          --log-level info
+          ${{ needs.setup.outputs.run_backfill }}
+          ${{ needs.setup.outputs.feed_flag }}
 
+  # ---------- quality-bronze ----------
+  quality-bronze:
+    name: "Quality (Bronze)"
+    needs: [setup, ingest]
+    if: >-
+      always() &&
+      (needs.ingest.result == 'success' || needs.ingest.result == 'skipped') &&
+      (needs.setup.outputs.run_stage == 'all' ||
+       needs.setup.outputs.run_stage == 'quality-bronze')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run bronze quality checks
+        run: >-
+          uv run python -m pipeline.flow
+          --stage quality-bronze
+          --log-level info
+          ${{ needs.setup.outputs.feed_flag }}
+
+  # ---------- transform ----------
+  transform:
+    name: "Transform (Silver + Gold)"
+    needs: [setup, quality-bronze]
+    if: >-
+      always() &&
+      (needs.quality-bronze.result == 'success' || needs.quality-bronze.result == 'skipped') &&
+      (needs.setup.outputs.run_stage == 'all' ||
+       needs.setup.outputs.run_stage == 'transform')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run transformation
+        run: >-
+          uv run python -m pipeline.flow
+          --stage transform
+          --log-level info
+          ${{ needs.setup.outputs.feed_flag }}
+
+  # ---------- quality-gold ----------
+  quality-gold:
+    name: "Quality (Gold)"
+    needs: [setup, transform]
+    if: >-
+      always() &&
+      (needs.transform.result == 'success' || needs.transform.result == 'skipped') &&
+      (needs.setup.outputs.run_stage == 'all' ||
+       needs.setup.outputs.run_stage == 'quality-gold')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run gold quality checks
+        run: >-
+          uv run python -m pipeline.flow
+          --stage quality-gold
+          --log-level info
+          ${{ needs.setup.outputs.feed_flag }}
+
+  # ---------- insight ----------
+  insight:
+    name: "Insight (AI)"
+    needs: [setup, quality-gold]
+    if: >-
+      always() &&
+      (needs.quality-gold.result == 'success' || needs.quality-gold.result == 'skipped') &&
+      (needs.setup.outputs.run_stage == 'all' ||
+       needs.setup.outputs.run_stage == 'insight')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run insight generation
+        run: >-
+          uv run python -m pipeline.flow
+          --stage insight
+          --log-level info
+
+  # ---------- post-pipeline sync ----------
+  sync:
+    name: "Sync & Catalog"
+    needs: [setup, ingest, quality-bronze, transform, quality-gold, insight]
+    if: >-
+      always() &&
+      needs.setup.outputs.run_stage == 'all' &&
+      (needs.insight.result == 'success' || needs.quality-gold.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run pipeline
-        run: uv run python -m pipeline.flow ${{ inputs.backfill == true && '--backfill' || '' }}
-
       - name: Sync Iceberg catalog
-        if: success()
         env:
           R2_CATALOG_TOKEN: ${{ secrets.R2_CATALOG_TOKEN }}
           R2_CATALOG_WAREHOUSE: ${{ secrets.R2_CATALOG_WAREHOUSE }}
@@ -47,7 +183,6 @@ jobs:
         run: PYTHONPATH=. uv run python scripts/register_catalog.py
 
       - name: Trigger Railway gold sync
-        if: success()
         env:
           RAILWAY_API_URL: ${{ secrets.RAILWAY_API_URL }}
           SYNC_WEBHOOK_SECRET: ${{ secrets.SYNC_WEBHOOK_SECRET }}
@@ -97,9 +232,10 @@ jobs:
           path: artifacts/quality/
           retention-days: 30
 
+  # ---------- failure notification ----------
   notify-failure:
     name: Notify on failure
-    needs: [run-pipeline]
+    needs: [ingest, quality-bronze, transform, quality-gold, insight, sync]
     if: failure()
     runs-on: ubuntu-latest
     steps:
@@ -107,10 +243,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const stage = '${{ inputs.stage || 'all' }}';
+            const feeds = '${{ inputs.feeds || '(all)' }}';
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Pipeline failed: ${new Date().toISOString().split('T')[0]}`,
-              body: `Daily pipeline run failed.\n\n[View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              title: `Pipeline failed: ${new Date().toISOString().split('T')[0]} [${stage}]`,
+              body: `Daily pipeline run failed.\n\n**Stage:** ${stage}\n**Feeds:** ${feeds}\n\n[View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
               labels: ['pipeline-failure'],
             });
