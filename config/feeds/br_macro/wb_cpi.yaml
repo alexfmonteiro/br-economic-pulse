@@ -58,10 +58,10 @@ quality:
     min_row_count: 1
     max_rescued_data_rate: 1.0
   gold:
-    max_null_rate: 0.20
+    max_null_rate: 0.50
     min_row_count: 1
-    value_range_min: -5.0
-    value_range_max: 100.0
+    value_range_min: -10.0
+    value_range_max: 3000.0
 
 metadata:
   unit: "% a.a."

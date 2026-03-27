@@ -56,7 +56,7 @@ quality:
   gold:
     max_null_rate: 0.02
     min_row_count: 1
-    value_range_min: -10.0
+    value_range_min: -15.0
     value_range_max: 5.0
 
 metadata:

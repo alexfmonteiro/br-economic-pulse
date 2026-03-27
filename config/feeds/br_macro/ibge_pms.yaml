@@ -5,13 +5,13 @@ status: active
 
 source:
   type: api
-  url: "https://apisidra.ibge.gov.br/values/t/8162/n1/all/v/11624/p/last%2060/d/v11624%202"
+  url: "https://apisidra.ibge.gov.br/values/t/8162/n1/all/v/11624/p/last%2060/c11046/56726"
   format: json
   auth_method: none
   rate_limit_rpm: 10
   # IBGE SIDRA returns a header row as the first array element
   skip_rows: 1
-  backfill_url: "https://apisidra.ibge.gov.br/values/t/8162/n1/all/v/11624/p/all/d/v11624%202"
+  backfill_url: "https://apisidra.ibge.gov.br/values/t/8162/n1/all/v/11624/p/all/c11046/56726"
 
 schedule:
   cron: "0 6 15 * *"

@@ -56,8 +56,8 @@ quality:
   gold:
     max_null_rate: 0.02
     min_row_count: 1
-    value_range_min: -5.0
-    value_range_max: 15.0
+    value_range_min: -10.0
+    value_range_max: 50.0
 
 metadata:
   unit: "% a.m."

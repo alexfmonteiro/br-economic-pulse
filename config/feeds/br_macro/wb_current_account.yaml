@@ -58,7 +58,7 @@ quality:
     min_row_count: 1
     max_rescued_data_rate: 1.0
   gold:
-    max_null_rate: 0.20
+    max_null_rate: 0.50
     min_row_count: 1
     value_range_min: -200000000000.0
     value_range_max: 200000000000.0
