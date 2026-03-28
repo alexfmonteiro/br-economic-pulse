@@ -246,6 +246,7 @@ class FeedStatus(str, Enum):
 class SourceFormat(str, Enum):
     JSON = "json"
     CSV = "csv"
+    YAHOO_CHART = "yahoo_chart"
 
 
 class SilverProcessingType(str, Enum):

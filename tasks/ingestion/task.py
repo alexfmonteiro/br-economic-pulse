@@ -21,6 +21,8 @@ from tasks.base import BaseTask
 
 logger = structlog.get_logger()
 
+_YAHOO_USER_AGENT = "Mozilla/5.0 (compatible; Veredas/1.0)"
+
 
 def _generate_bcb_windows(
     start_date: str, window_years: int
@@ -144,7 +146,11 @@ class IngestionTask(BaseTask):
             separator = "&" if "?" in url else "?"
             url = f"{url}{separator}api_key={api_key}"
 
-        response = await client.get(url)
+        headers = {}
+        if feed.source.format == SourceFormat.YAHOO_CHART:
+            headers["User-Agent"] = _YAHOO_USER_AGENT
+
+        response = await client.get(url, headers=headers)
         response.raise_for_status()
 
         raw_records = self._parse_response(response, feed)
@@ -336,6 +342,8 @@ class IngestionTask(BaseTask):
         """Parse HTTP response based on feed source format."""
         if feed.source.format == SourceFormat.CSV:
             return self._parse_csv(response.text, feed)
+        if feed.source.format == SourceFormat.YAHOO_CHART:
+            return self._parse_yahoo_chart(response, feed)
         return self._parse_json(response, feed)
 
     def _parse_json(
@@ -374,6 +382,33 @@ class IngestionTask(BaseTask):
             values = line.split(feed.source.csv_separator)
             if len(values) == len(headers):
                 records.append(dict(zip(headers, values)))
+
+        return records
+
+    def _parse_yahoo_chart(
+        self, response: Any, feed: FeedConfig
+    ) -> list[dict[str, Any]]:
+        """Parse Yahoo Finance v8 chart API columnar response into rows.
+
+        Yahoo returns timestamps and quote values as parallel arrays:
+        {chart: {result: [{timestamp: [...], indicators: {quote: [{close: [...], ...}]}}]}}
+        """
+        data = response.json()
+        result = data.get("chart", {}).get("result", [])
+        if not result:
+            return []
+
+        entry = result[0]
+        timestamps = entry.get("timestamp", [])
+        quote = entry.get("indicators", {}).get("quote", [{}])[0]
+
+        records: list[dict[str, Any]] = []
+        for i, ts in enumerate(timestamps):
+            dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+            date_str = dt.strftime("%d/%m/%Y")
+            close = quote.get("close", [None] * (i + 1))[i]
+            if close is not None:
+                records.append({"data": date_str, "valor": str(close)})
 
         return records
 

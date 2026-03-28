@@ -696,3 +696,67 @@ async def test_ingestion_backfill_yearly_urls(
     assert len(called_urls) >= 2
     assert any("2024" in u for u in called_urls)
     assert any("2025" in u for u in called_urls)
+
+
+@pytest.mark.asyncio()
+async def test_ingestion_yahoo_chart_format(
+    storage: LocalStorageBackend,
+) -> None:
+    """Yahoo Finance v8 chart format should be parsed into row-based records."""
+    yahoo_response = {
+        "chart": {
+            "result": [
+                {
+                    "timestamp": [1711497600, 1711584000, 1711670400],
+                    "indicators": {
+                        "quote": [
+                            {
+                                "close": [128150.0, 127500.5, 129000.0],
+                                "open": [127000.0, 128000.0, 127600.0],
+                                "high": [128500.0, 128200.0, 129500.0],
+                                "low": [126800.0, 127100.0, 127400.0],
+                                "volume": [1000000, 1100000, 1200000],
+                            }
+                        ]
+                    },
+                }
+            ]
+        }
+    }
+    feed_dict = {
+        "feed_id": "ibovespa_test",
+        "name": "IBOVESPA Test",
+        "source": {
+            "type": "api",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/%5EBVSP?range=5d&interval=1d",
+            "format": "yahoo_chart",
+        },
+        "schema_fields": [
+            {"name": "data", "source_field": "data", "type": "string", "required": True},
+            {"name": "valor", "source_field": "valor", "type": "string", "required": True},
+        ],
+    }
+    feed = FeedConfig.model_validate(feed_dict, strict=False)
+    configs = {"ibovespa_test": feed}
+
+    async def mock_get(url: str, **kwargs: object) -> MagicMock:
+        return _make_response(json_data=yahoo_response)
+
+    client = AsyncMock()
+    client.get = AsyncMock(side_effect=mock_get)
+
+    task = IngestionTask(storage=storage, feed_configs=configs, http_client=client)
+    result = await task.run()
+
+    assert result.success is True
+    assert result.rows_processed == 3
+
+    # Verify bronze parquet was written
+    keys = await storage.list_keys("bronze/ibovespa_test")
+    assert len(keys) == 1
+    data = await storage.read(keys[0])
+    table = pq.read_table(io.BytesIO(data))
+    assert table.num_rows == 3
+    # Check the valor column has closing values
+    valores = table.column("valor").to_pylist()
+    assert valores[0] == "128150.0"

@@ -1,17 +1,15 @@
 feed_id: bcb_ibovespa
-name: "BCB IBOVESPA Index"
-version: "1.0.0"
+name: "IBOVESPA Index (Yahoo Finance)"
+version: "2.0.0"
 status: active
 
 source:
   type: api
-  url: "https://api.bcb.gov.br/dados/serie/bcdata.sgs.7/dados/ultimos/20?formato=json"
-  format: json
+  url: "https://query2.finance.yahoo.com/v8/finance/chart/%5EBVSP?range=1mo&interval=1d"
+  format: yahoo_chart
   auth_method: none
-  rate_limit_rpm: 30
-  backfill_url: "https://api.bcb.gov.br/dados/serie/bcdata.sgs.7/dados?formato=json&dataInicial={start}&dataFinal={end}"
-  backfill_window_years: 10
-  backfill_start_date: "02/01/1968"
+  rate_limit_rpm: 10
+  backfill_url: "https://query2.finance.yahoo.com/v8/finance/chart/%5EBVSP?period1=0&period2=9999999999&interval=1d"
 
 schedule:
   cron: "0 6 * * 1-5"
@@ -64,7 +62,7 @@ metadata:
   tags:
     - ibovespa
     - equity
-    - bcb
     - stock_market
     - bolsa
+    - yahoo_finance
   domain: equity
