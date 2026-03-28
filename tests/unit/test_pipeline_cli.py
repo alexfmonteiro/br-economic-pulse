@@ -126,9 +126,9 @@ class TestFilterFeeds:
 # ---------------------------------------------------------------------------
 
 class TestBuildStages:
-    def test_all_returns_five_stages(self) -> None:
+    def test_all_returns_seven_stages(self) -> None:
         stages = build_stages("all", None, {}, "run-1", False)
-        assert len(stages) == 5
+        assert len(stages) == 7
 
     def test_ingest_returns_one_stage(self) -> None:
         stages = build_stages("ingest", None, {}, "run-1", False)
@@ -150,10 +150,20 @@ class TestBuildStages:
         assert len(stages) == 1
         assert stages[0].task_name == "quality"  # type: ignore[union-attr]
 
+    def test_cross_series_returns_one_stage(self) -> None:
+        stages = build_stages("cross-series", None, {}, "run-1", False)
+        assert len(stages) == 1
+        assert stages[0].task_name == "cross_series"  # type: ignore[union-attr]
+
     def test_insight_returns_one_stage(self) -> None:
         stages = build_stages("insight", None, {}, "run-1", False)
         assert len(stages) == 1
         assert stages[0].agent_name == "insight"  # type: ignore[union-attr]
+
+    def test_anomaly_returns_one_stage(self) -> None:
+        stages = build_stages("anomaly", None, {}, "run-1", False)
+        assert len(stages) == 1
+        assert stages[0].agent_name == "anomaly"  # type: ignore[union-attr]
 
     def test_all_stages_order(self) -> None:
         stages = build_stages("all", None, {}, "run-1", False)
@@ -163,7 +173,10 @@ class TestBuildStages:
                 names.append(s.task_name)
             else:
                 names.append(s.agent_name)  # type: ignore[union-attr]
-        assert names == ["ingestion", "quality", "transformation", "quality", "insight"]
+        assert names == [
+            "ingestion", "quality", "transformation", "cross_series",
+            "quality", "insight", "anomaly",
+        ]
 
     def test_backfill_propagated_to_ingestion(self) -> None:
         stages = build_stages("ingest", None, {}, "run-1", True)

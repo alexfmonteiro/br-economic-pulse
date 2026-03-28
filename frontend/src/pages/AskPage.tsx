@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { postQuery, getSeriesLabel } from '@/lib/api';
 import type { QueryResponse } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -225,8 +226,8 @@ export function AskPage() {
 
               {!msg.isLoading && !msg.error && msg.role === 'assistant' && (
                 <>
-                  <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none prose-p:my-1 prose-strong:text-slate-100 prose-ul:my-1 prose-li:my-0">
-                    <Markdown>{msg.content}</Markdown>
+                  <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none prose-p:my-1 prose-strong:text-slate-100 prose-ul:my-1 prose-li:my-0 prose-table:border-collapse prose-th:border prose-th:border-slate-600 prose-th:px-3 prose-th:py-1.5 prose-th:bg-slate-700/50 prose-td:border prose-td:border-slate-700 prose-td:px-3 prose-td:py-1.5">
+                    <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                   </div>
 
                   {msg.response && (

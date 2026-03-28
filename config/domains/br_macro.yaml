@@ -83,6 +83,12 @@ data_sources:
     description:
       en: "Daily electricity load — real-time GDP proxy with zero lag"
       pt: "Carga de energia elétrica diária — proxy do PIB em tempo real sem defasagem"
+  - id: derived
+    name: "Derived (Computed)"
+    url: "https://github.com/alexmonteiro/veredas"
+    description:
+      en: "Cross-series derived indicators computed by the pipeline (real rate, yield spread, divergence metrics)"
+      pt: "Indicadores derivados entre séries computados pelo pipeline (taxa real, spread de juros, métricas de divergência)"
 
 router:
   direct_lookup_patterns:
@@ -633,6 +639,42 @@ series:
       en: "Daily national electricity load (sum of 4 subsystems). Real-time GDP proxy — daily frequency with zero lag while official GDP lags 2-3 months. No other free Brazilian platform offers this."
       pt: "Carga diária nacional de energia elétrica (soma dos 4 subsistemas). Proxy do PIB em tempo real — frequência diária sem defasagem enquanto PIB oficial atrasa 2-3 meses."
     keywords: ["eletricidade", "electricity", "energia", "energy", "carga", "ons"]
+
+  derived_real_rate:
+    label: "Taxa Real de Juros"
+    unit: "% a.a."
+    source: "Derived"
+    color: "#dc2626"
+    freshness_hours: 168
+    domain: monetary_policy
+    description:
+      en: "Real interest rate: SELIC annualized minus trailing 12-month compounded IPCA. Core indicator of monetary policy stance — positive real rate indicates restrictive policy."
+      pt: "Taxa real de juros: SELIC anualizada menos IPCA acumulado 12 meses. Indicador central da postura monetária — taxa real positiva indica política restritiva."
+    keywords: ["taxa real", "real rate", "real interest", "juros reais"]
+
+  derived_ipca_gdp_divergence:
+    label: "Divergência IPCA-PIB"
+    unit: "index"
+    source: "Derived"
+    color: "#f97316"
+    freshness_hours: 168
+    domain: activity
+    description:
+      en: "IPCA vs GDP proxy (IBC-Br) normalized spread. Positive values signal inflation outpacing growth (stagflationary pressure). Computed as z-score(IPCA) minus z-score(IBC-Br)."
+      pt: "Spread normalizado IPCA vs proxy do PIB (IBC-Br). Valores positivos sinalizam inflação superando crescimento (pressão estagflacionária). Calculado como z-score(IPCA) menos z-score(IBC-Br)."
+    keywords: ["divergência", "divergence", "ipca pib", "ipca gdp", "estagflação", "stagflation"]
+
+  derived_yield_spread:
+    label: "Spread da Curva de Juros"
+    unit: "p.p."
+    source: "Derived"
+    color: "#7c3aed"
+    freshness_hours: 168
+    domain: fixed_income
+    description:
+      en: "Yield curve slope: long-term prefixado minus short-term prefixado rate. Positive = normal curve (growth expectation). Negative = inverted curve (recession signal)."
+      pt: "Inclinação da curva de juros: taxa prefixado longo menos prefixado curto. Positivo = curva normal (expectativa de crescimento). Negativo = curva invertida (sinal de recessão)."
+    keywords: ["yield spread", "curva de juros", "yield curve", "inclinação", "slope"]
 
 app:
   title: "Veredas"

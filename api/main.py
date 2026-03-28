@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -82,6 +83,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Load environment variables and initialize Sentry on startup."""
     load_dotenv(".env.local")
     load_dotenv()
+
+    # Configure structlog filtering from LOG_LEVEL env var (default: INFO)
+    level = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(level))
 
     sentry_dsn = os.environ.get("SENTRY_DSN_API", "")
     if sentry_dsn:

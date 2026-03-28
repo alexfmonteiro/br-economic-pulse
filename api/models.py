@@ -352,7 +352,7 @@ class FeedConfig(BaseModel):
     name: str
     version: str = "1.0.0"
     status: FeedStatus = FeedStatus.ACTIVE
-    source: FeedSourceConfig
+    source: FeedSourceConfig = Field(default_factory=lambda: FeedSourceConfig(url="n/a", format=SourceFormat.JSON))
     schedule: FeedScheduleConfig = Field(default_factory=FeedScheduleConfig)
     schema_fields: list[FeedFieldDefinition] = Field(default_factory=list)
     processing: FeedProcessingConfig = Field(default_factory=FeedProcessingConfig)
@@ -375,6 +375,32 @@ class DataPoint(BaseModel):
     series: str
     value: float
     date: datetime
+
+
+class ComparisonType(str, Enum):
+    NONE = "none"
+    TIME_SERIES = "time_series"
+    CROSS_SERIES = "cross_series"
+    TREND = "trend"
+
+
+class AggregationLevel(str, Enum):
+    DAILY = "daily"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    YEARLY = "yearly"
+    LATEST = "latest"
+
+
+class QueryIntent(BaseModel):
+    """Parsed user intent for structured query planning."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    series: list[str] = Field(default_factory=list)
+    time_range: str = "1y"
+    comparison: ComparisonType = ComparisonType.NONE
+    aggregation: AggregationLevel = AggregationLevel.MONTHLY
 
 
 class QueryRequest(BaseModel):

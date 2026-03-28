@@ -1,0 +1,28 @@
+feed_id: derived_real_rate
+name: "Real Interest Rate (SELIC - 12M IPCA)"
+status: active
+version: "1.0.0"
+bronze_source: computed
+
+processing:
+  bronze:
+    write_mode: append
+  silver:
+    processing_type: latest_only
+    dedup_columns: [date]
+    dedup_order_by: "_ingested_at DESC"
+
+quality:
+  bronze:
+    max_null_rate: 1.0
+    min_row_count: 0
+  gold:
+    max_null_rate: 0.05
+    min_row_count: 10
+    value_range_min: -30.0
+    value_range_max: 50.0
+
+metadata:
+  unit: "% a.a."
+  tags: [real_rate, selic, ipca, monetary_policy, derived]
+  domain: monetary_policy

@@ -20,15 +20,20 @@ from pipeline.feed_config import load_feed_configs  # noqa: E402
 from pipeline.flow import PipelineFlow  # noqa: E402
 from storage import get_storage_backend  # noqa: E402
 from agents.base import BaseAgent  # noqa: E402
+from agents.anomaly.agent import AnomalyAgent  # noqa: E402
 from agents.insight.agent import InsightAgent  # noqa: E402
 from tasks.base import BaseTask  # noqa: E402
 from tasks.ingestion.task import IngestionTask  # noqa: E402
 from tasks.quality.task import QualityTask  # noqa: E402
+from tasks.cross_series.task import CrossSeriesTask  # noqa: E402
 from tasks.transformation.task import TransformationTask  # noqa: E402
 
 logger = structlog.get_logger()
 
-VALID_STAGES = ["ingest", "quality-bronze", "transform", "quality-gold", "insight", "all"]
+VALID_STAGES = [
+    "ingest", "quality-bronze", "transform", "cross-series",
+    "quality-gold", "insight", "anomaly", "all",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,12 +113,14 @@ def build_stages(
             storage=storage,
             feed_configs=feed_configs,
         ),
+        "cross-series": CrossSeriesTask(storage=storage),
         "quality-gold": QualityTask(
             storage=storage,
             stage=PipelineStage.POST_TRANSFORMATION,
             feed_configs=feed_configs,
         ),
         "insight": InsightAgent(),
+        "anomaly": AnomalyAgent(),
     }
 
     if stage == "all":

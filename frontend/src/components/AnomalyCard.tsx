@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAnomalyInsights } from '@/hooks/useMetrics';
 import { getSeriesLabel } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -51,7 +52,7 @@ export function AnomalyCard() {
       {!isLoading && !isError && insight && (
         <div className="space-y-3">
           <div className="text-sm text-slate-300 leading-relaxed prose prose-invert prose-sm max-w-none prose-p:my-1 prose-strong:text-slate-100 prose-ul:my-1 prose-li:my-0">
-            <Markdown>{insight.content}</Markdown>
+            <Markdown remarkPlugins={[remarkGfm]}>{insight.content}</Markdown>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
