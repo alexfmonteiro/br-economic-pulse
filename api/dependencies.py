@@ -142,23 +142,34 @@ async def _read_gold_bytes(series: str) -> bytes | None:
 
 
 def _query_parquet_bytes(parquet_bytes: bytes, after: str | None) -> list[dict[str, Any]]:
-    """Query in-memory parquet bytes with DuckDB."""
+    """Query in-memory parquet bytes with DuckDB.
+
+    When a date filter returns no rows but the dataset contains data
+    (e.g. annual World Bank series filtered by a 1-year window),
+    falls back to returning all available data points.
+    """
     table = pq.read_table(io.BytesIO(parquet_bytes))
     conn = duckdb.connect()
     conn.register("gold", table)
+
+    columns = ["date", "value", "series"]
 
     if after:
         result = conn.execute(
             "SELECT date, value, series FROM gold WHERE CAST(date AS DATE) >= CAST(? AS DATE) ORDER BY date",
             [after],
         ).fetchall()
+        if not result:
+            # Fallback: return all data when filter excludes everything
+            result = conn.execute(
+                "SELECT date, value, series FROM gold ORDER BY date"
+            ).fetchall()
     else:
         result = conn.execute(
             "SELECT date, value, series FROM gold ORDER BY date"
         ).fetchall()
-    columns = ["date", "value", "series"]
-    conn.close()
 
+    conn.close()
     return [dict(zip(columns, row)) for row in result]
 
 

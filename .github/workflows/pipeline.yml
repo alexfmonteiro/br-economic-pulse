@@ -17,6 +17,7 @@ on:
           - ingest
           - quality-bronze
           - transform
+          - cross-series
           - quality-gold
           - insight
         default: "all"
@@ -118,13 +119,34 @@ jobs:
           --log-level info
           ${{ needs.setup.outputs.feed_flag }}
 
-  # ---------- quality-gold ----------
-  quality-gold:
-    name: "Quality (Gold)"
+  # ---------- cross-series ----------
+  cross-series:
+    name: "Cross-Series (Derived)"
     needs: [setup, transform]
     if: >-
       always() &&
       (needs.transform.result == 'success' || needs.transform.result == 'skipped') &&
+      (needs.setup.outputs.run_stage == 'all' ||
+       needs.setup.outputs.run_stage == 'cross-series')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run cross-series computations
+        run: >-
+          uv run python -m pipeline.flow
+          --stage cross-series
+          --log-level info
+
+  # ---------- quality-gold ----------
+  quality-gold:
+    name: "Quality (Gold)"
+    needs: [setup, cross-series]
+    if: >-
+      always() &&
+      (needs.cross-series.result == 'success' || needs.cross-series.result == 'skipped') &&
       (needs.setup.outputs.run_stage == 'all' ||
        needs.setup.outputs.run_stage == 'quality-gold')
     runs-on: ubuntu-latest
@@ -164,7 +186,7 @@ jobs:
   # ---------- post-pipeline sync ----------
   sync:
     name: "Sync & Catalog"
-    needs: [setup, ingest, quality-bronze, transform, quality-gold, insight]
+    needs: [setup, ingest, quality-bronze, transform, cross-series, quality-gold, insight]
     if: >-
       always() &&
       needs.setup.outputs.run_stage == 'all' &&
@@ -236,7 +258,7 @@ jobs:
   # ---------- failure notification ----------
   notify-failure:
     name: Notify on failure
-    needs: [ingest, quality-bronze, transform, quality-gold, insight, sync]
+    needs: [ingest, quality-bronze, transform, cross-series, quality-gold, insight, sync]
     if: failure()
     runs-on: ubuntu-latest
     steps:
