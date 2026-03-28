@@ -26,7 +26,7 @@ schema_fields:
     required: true
     description: "Reference date (YYYY-MM-DD)"
     silver_type: DATE
-    silver_expression: "strptime(\"{col}\", '%Y-%m-%d')"
+    silver_expression: "CAST(\"{col}\" AS DATE)"
   - name: id_subsistema
     source_field: id_subsistema
     type: string
