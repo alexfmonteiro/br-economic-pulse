@@ -43,7 +43,8 @@ class TransformationTask(BaseTask):
             if len(parts) >= 2:
                 bronze_set.add(parts[1])
 
-        series_set = set(bronze_set)
+        # Only include bronze series that have a feed config
+        series_set = bronze_set & set(self._feed_configs)
         # Include derived feeds whose bronze_source has data
         for feed_id, feed in self._feed_configs.items():
             if feed.bronze_source and feed.bronze_source in bronze_set:
