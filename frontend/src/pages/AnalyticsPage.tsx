@@ -14,7 +14,7 @@ import { RangeSelector } from '@/components/RangeSelector';
 import { GranularitySelector } from '@/components/GranularitySelector';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useDomain, localize } from '@/lib/domain';
-import type { Translations } from '@/lib/i18n';
+import type { Translations, Language } from '@/lib/i18n';
 
 function formatAxisDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr);
@@ -47,9 +47,10 @@ interface ChartCardProps {
   t: Translations;
   locale: string;
   hint: string;
+  language: Language;
 }
 
-function ChartCard({ config, range, t, locale, hint }: ChartCardProps) {
+function ChartCard({ config, range, t, locale, hint, language }: ChartCardProps) {
   const [granularity, setGranularity] = useState<ChartGranularity>(config.chartGranularity);
   const { data, isLoading, isError } = useMetrics(config.id, range, granularity);
 
@@ -160,7 +161,7 @@ function ChartCard({ config, range, t, locale, hint }: ChartCardProps) {
               </>
             )}
           </p>
-          <GranularitySelector value={granularity} onChange={setGranularity} />
+          <GranularitySelector value={granularity} onChange={setGranularity} language={language} />
         </div>
       </div>
     </div>
@@ -193,7 +194,7 @@ export function AnalyticsPage() {
         {SERIES.map((s) => {
           const seriesCfg = cfg.series[s.id];
           const hint = seriesCfg ? localize(seriesCfg.description, language) : '';
-          return <ChartCard key={s.id} config={s} range={range} t={t} locale={locale} hint={hint} />;
+          return <ChartCard key={s.id} config={s} range={range} t={t} locale={locale} hint={hint} language={language} />;
         })}
       </div>
     </div>

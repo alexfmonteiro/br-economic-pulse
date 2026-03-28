@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { postQuery, getSeriesLabel } from '@/lib/api';
+import { postQuery } from '@/lib/api';
 import type { QueryResponse } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useDomain, localize } from '@/lib/domain';
-import type { Translations } from '@/lib/i18n';
+import type { DomainConfig } from '@/lib/domain';
+import type { Translations, Language } from '@/lib/i18n';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -30,7 +31,16 @@ function TierBadge({ tier, t }: { tier: 'direct_lookup' | 'full_llm'; t: Transla
   );
 }
 
-function DataCitations({ response, t }: { response: QueryResponse; t: Translations }) {
+function getLocalizedSeriesLabel(seriesId: string, cfg: DomainConfig, language: Language): string {
+  const series = cfg.series[seriesId];
+  if (series?.label) {
+    const label = typeof series.label === 'string' ? series.label : series.label[language] ?? series.label['en'];
+    if (label) return label;
+  }
+  return seriesId;
+}
+
+function DataCitations({ response, t, cfg, language }: { response: QueryResponse; t: Translations; cfg: DomainConfig; language: Language }) {
   if (response.data_points.length === 0) return null;
 
   return (
@@ -41,7 +51,9 @@ function DataCitations({ response, t }: { response: QueryResponse; t: Translatio
       <div className="space-y-1">
         {response.data_points.map((dp, i) => (
           <div key={i} className="grid grid-cols-[1fr_auto_auto] gap-x-4 items-center text-xs">
-            <span className="text-slate-400">{getSeriesLabel(dp.series)}</span>
+            <span className="text-slate-400" title={dp.series}>
+              {getLocalizedSeriesLabel(dp.series, cfg, language)}
+            </span>
             <span className="text-slate-300 font-medium text-right">
               {dp.value.toLocaleString('en-US', { maximumFractionDigits: 4 })}
             </span>
@@ -232,7 +244,7 @@ export function AskPage() {
 
                   {msg.response && (
                     <>
-                      <DataCitations response={msg.response} t={t} />
+                      <DataCitations response={msg.response} t={t} cfg={cfg} language={language} />
                       <div className="flex items-center gap-3 mt-3">
                         <TierBadge tier={msg.response.tier_used} t={t} />
                         {msg.response.llm_tokens_used > 0 && (
