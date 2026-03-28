@@ -6,6 +6,7 @@ import io
 import uuid
 from datetime import datetime, timezone
 
+import duckdb
 import pyarrow.parquet as pq
 import structlog
 
@@ -218,11 +219,19 @@ class QualityTask(BaseTask):
                 )
             )
 
+            # Aggregate checks pushed to DuckDB (avoids O(n) Python loops)
+            conn = duckdb.connect()
+            conn.register("_qt", table)
+
             # Rescued data rate check
             if max_rescued_rate is not None and "_rescued_data" in table.column_names:
-                rescued_col = table.column("_rescued_data").to_pylist()
-                non_null_count = sum(1 for v in rescued_col if v is not None)
-                rescued_rate = non_null_count / len(rescued_col) if rescued_col else 0.0
+                result = conn.execute(
+                    'SELECT COUNT(*) FILTER (WHERE "_rescued_data" IS NOT NULL),'
+                    " COUNT(*) FROM _qt"
+                ).fetchone()
+                assert result is not None
+                non_null_count, total = result[0], result[1]
+                rescued_rate = non_null_count / total if total > 0 else 0.0
 
                 checks.append(
                     QualityCheckResult(
@@ -238,11 +247,14 @@ class QualityTask(BaseTask):
                     )
                 )
 
-            # Duplicate check on data column if it exists
+            # Duplicate check on data column
             if "data" in table.column_names:
-                data_col = table.column("data").to_pylist()
-                non_null = [v for v in data_col if v is not None]
-                has_dupes = len(non_null) != len(set(non_null))
+                result = conn.execute(
+                    'SELECT COUNT(*) - COUNT(DISTINCT "data")'
+                    ' FROM _qt WHERE "data" IS NOT NULL'
+                ).fetchone()
+                assert result is not None
+                has_dupes = result[0] > 0
                 checks.append(
                     QualityCheckResult(
                         check_name=f"no_duplicates_{series}",
@@ -250,6 +262,8 @@ class QualityTask(BaseTask):
                         message=f"{series} has duplicate dates" if has_dupes else "",
                     )
                 )
+
+            conn.close()
 
         return checks
 
@@ -326,21 +340,30 @@ class QualityTask(BaseTask):
                 )
             )
 
-            # Value range check
+            # Value range check (DuckDB pushdown)
             if (
                 "value" in table.column_names
                 and (val_min is not None or val_max is not None)
             ):
-                values = [
-                    v for v in table.column("value").to_pylist() if v is not None
-                ]
-                if values:
-                    out_of_range = 0
-                    for v in values:
-                        if val_min is not None and v < val_min:
-                            out_of_range += 1
-                        if val_max is not None and v > val_max:
-                            out_of_range += 1
+                conditions: list[str] = []
+                if val_min is not None:
+                    conditions.append(f"value < {val_min}")
+                if val_max is not None:
+                    conditions.append(f"value > {val_max}")
+                where = " OR ".join(conditions)
+
+                conn = duckdb.connect()
+                conn.register("_gt", table)
+                result = conn.execute(
+                    "SELECT COUNT(*) FILTER (WHERE value IS NOT NULL) AS total,"
+                    f" COUNT(*) FILTER (WHERE value IS NOT NULL AND ({where})) AS oor"
+                    " FROM _gt"
+                ).fetchone()
+                conn.close()
+                assert result is not None
+                non_null_count, out_of_range = result[0], result[1]
+
+                if non_null_count > 0:
                     checks.append(
                         QualityCheckResult(
                             check_name=f"value_range_{series_name}",

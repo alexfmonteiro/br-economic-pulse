@@ -82,22 +82,29 @@ class IngestionTask(BaseTask):
         )
 
         try:
-            for feed_id, feed in self._feed_configs.items():
-                # Derived feeds read bronze from another feed; skip ingestion
-                if feed.bronze_source:
-                    continue
-                try:
-                    rows, recon = await self._fetch_feed(client, feed)
+            feeds = [f for f in self._feed_configs.values() if not f.bronze_source]
+            semaphore = asyncio.Semaphore(10)
+
+            async def _fetch_one(feed: FeedConfig) -> tuple[int, SeriesReconciliation] | None:
+                async with semaphore:
+                    try:
+                        return await self._fetch_feed(client, feed)
+                    except Exception as exc:
+                        msg = f"{feed.feed_id} failed: {exc}"
+                        warnings.append(msg)
+                        logger.warning(
+                            "ingestion_source_failed",
+                            source=feed.feed_id,
+                            error=str(exc),
+                        )
+                        return None
+
+            results = await asyncio.gather(*[_fetch_one(f) for f in feeds])
+            for result in results:
+                if result is not None:
+                    rows, recon = result
                     total_rows += rows
                     reconciliation.append(recon)
-                except Exception as exc:
-                    msg = f"{feed_id} failed: {exc}"
-                    warnings.append(msg)
-                    logger.warning(
-                        "ingestion_source_failed",
-                        source=feed_id,
-                        error=str(exc),
-                    )
         finally:
             if owns_client:
                 await client.aclose()
