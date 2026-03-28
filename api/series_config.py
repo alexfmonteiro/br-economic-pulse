@@ -14,7 +14,7 @@ def _build_series_display() -> dict[str, dict[str, str]]:
     result: dict[str, dict[str, str]] = {}
     for sid, series in cfg.series.items():
         result[sid] = {
-            "label": series.label,
+            "label": series.label.en,
             "unit": series.unit,
             "source": series.source,
             "color": series.color,

@@ -121,7 +121,7 @@ def _build_series_descriptions() -> str:
     cfg = get_domain_config()
     parts: list[str] = []
     for sid, series in cfg.series.items():
-        parts.append(f"{series.label} ({sid}): {series.description.en}")
+        parts.append(f"{series.label.en} ({sid}): {series.description.en}")
     return "\n".join(parts)
 
 

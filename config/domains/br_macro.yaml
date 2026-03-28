@@ -101,7 +101,9 @@ router:
 
 series:
   bcb_selic:
-    label: "SELIC"
+    label:
+      en: "SELIC"
+      pt: "SELIC"
     unit: "% a.a."
     source: "BCB"
     color: "#3b82f6"
@@ -113,7 +115,9 @@ series:
     keywords: ["selic"]
 
   bcb_ipca:
-    label: "IPCA"
+    label:
+      en: "IPCA"
+      pt: "IPCA"
     unit: "% a.m."
     source: "BCB"
     color: "#8b5cf6"
@@ -125,7 +129,9 @@ series:
     keywords: ["ipca", "inflação", "inflation"]
 
   bcb_usd_brl:
-    label: "USD/BRL"
+    label:
+      en: "USD/BRL"
+      pt: "USD/BRL"
     unit: "R$"
     source: "BCB"
     color: "#22c55e"
@@ -137,7 +143,9 @@ series:
     keywords: ["dolar", "dollar", "usd", "cambio", "câmbio"]
 
   ibge_pnad:
-    label: "Taxa de Desemprego"
+    label:
+      en: "Unemployment Rate"
+      pt: "Taxa de Desemprego"
     unit: "%"
     source: "IBGE"
     color: "#f59e0b"
@@ -149,7 +157,9 @@ series:
     keywords: ["desemprego", "unemployment"]
 
   ibge_gdp:
-    label: "PIB"
+    label:
+      en: "GDP"
+      pt: "PIB"
     unit: "R$ bi"
     source: "IBGE"
     color: "#06b6d4"
@@ -161,7 +171,9 @@ series:
     keywords: ["pib", "gdp"]
 
   ibge_pim:
-    label: "Produção Industrial"
+    label:
+      en: "Industrial Production"
+      pt: "Produção Industrial"
     unit: "% MoM"
     source: "IBGE"
     color: "#0d9488"
@@ -173,7 +185,9 @@ series:
     keywords: ["produção industrial", "industrial production", "pim", "pim-pf"]
 
   ibge_pmc:
-    label: "Vendas no Varejo"
+    label:
+      en: "Retail Sales"
+      pt: "Vendas no Varejo"
     unit: "% MoM"
     source: "IBGE"
     color: "#14b8a6"
@@ -185,7 +199,9 @@ series:
     keywords: ["varejo", "retail", "pmc", "vendas"]
 
   ibge_pms:
-    label: "Serviços"
+    label:
+      en: "Services"
+      pt: "Serviços"
     unit: "% MoM"
     source: "IBGE"
     color: "#2dd4bf"
@@ -197,7 +213,9 @@ series:
     keywords: ["serviços", "services", "pms"]
 
   tesouro_prefixado_curto:
-    label: "Prefixado Curto"
+    label:
+      en: "Short-Term Fixed Rate"
+      pt: "Prefixado Curto"
     unit: "% a.a."
     source: "Tesouro"
     color: "#ec4899"
@@ -209,7 +227,9 @@ series:
     keywords: ["tesouro", "prefixado", "prefixado curto"]
 
   tesouro_prefixado_longo:
-    label: "Prefixado Longo"
+    label:
+      en: "Long-Term Fixed Rate"
+      pt: "Prefixado Longo"
     unit: "% a.a."
     source: "Tesouro"
     color: "#f472b6"
@@ -221,7 +241,9 @@ series:
     keywords: ["prefixado longo"]
 
   tesouro_ipca:
-    label: "Juros Real (IPCA+)"
+    label:
+      en: "Real Rate (IPCA+)"
+      pt: "Juros Real (IPCA+)"
     unit: "% a.a."
     source: "Tesouro"
     color: "#fb923c"
@@ -233,7 +255,9 @@ series:
     keywords: ["juros real", "ntn-b"]
 
   bcb_cdi:
-    label: "CDI"
+    label:
+      en: "CDI"
+      pt: "CDI"
     unit: "% a.d."
     source: "BCB"
     color: "#2563eb"
@@ -245,7 +269,9 @@ series:
     keywords: ["cdi"]
 
   bcb_cdi_monthly:
-    label: "CDI Mensal"
+    label:
+      en: "Monthly CDI"
+      pt: "CDI Mensal"
     unit: "% a.m."
     source: "BCB"
     color: "#1d4ed8"
@@ -257,7 +283,9 @@ series:
     keywords: ["cdi mensal", "cdi acumulado"]
 
   bcb_igpm:
-    label: "IGP-M"
+    label:
+      en: "IGP-M"
+      pt: "IGP-M"
     unit: "% a.m."
     source: "BCB"
     color: "#7c3aed"
@@ -269,7 +297,9 @@ series:
     keywords: ["igpm", "igp-m", "igp"]
 
   bcb_inpc:
-    label: "INPC"
+    label:
+      en: "INPC"
+      pt: "INPC"
     unit: "% a.m."
     source: "BCB"
     color: "#9333ea"
@@ -281,7 +311,9 @@ series:
     keywords: ["inpc"]
 
   bcb_ipca15:
-    label: "IPCA-15"
+    label:
+      en: "IPCA-15"
+      pt: "IPCA-15"
     unit: "% a.m."
     source: "BCB"
     color: "#a855f7"
@@ -293,7 +325,9 @@ series:
     keywords: ["ipca-15", "ipca15", "ipca 15", "prévia"]
 
   bcb_default_total:
-    label: "Inadimplência Total"
+    label:
+      en: "Total Default Rate"
+      pt: "Inadimplência Total"
     unit: "%"
     source: "BCB"
     color: "#dc2626"
@@ -305,7 +339,9 @@ series:
     keywords: ["inadimplencia", "inadimplência", "default"]
 
   bcb_default_pf:
-    label: "Inadimplência PF"
+    label:
+      en: "Consumer Default Rate"
+      pt: "Inadimplência PF"
     unit: "%"
     source: "BCB"
     color: "#ef4444"
@@ -317,7 +353,9 @@ series:
     keywords: ["inadimplencia pf", "default pf"]
 
   bcb_default_pj:
-    label: "Inadimplência PJ"
+    label:
+      en: "Corporate Default Rate"
+      pt: "Inadimplência PJ"
     unit: "%"
     source: "BCB"
     color: "#b91c1c"
@@ -329,7 +367,9 @@ series:
     keywords: ["inadimplencia pj", "default pj"]
 
   bcb_lending_rate:
-    label: "Taxa de Empréstimo"
+    label:
+      en: "Lending Rate"
+      pt: "Taxa de Empréstimo"
     unit: "% a.a."
     source: "BCB"
     color: "#e11d48"
@@ -341,7 +381,9 @@ series:
     keywords: ["emprestimo", "empréstimo", "lending", "taxa de juros média"]
 
   bcb_household_debt:
-    label: "Endividamento Famílias"
+    label:
+      en: "Household Debt"
+      pt: "Endividamento Famílias"
     unit: "% renda"
     source: "BCB"
     color: "#f43f5e"
@@ -353,7 +395,9 @@ series:
     keywords: ["endividamento", "household debt", "divida familias"]
 
   bcb_ibc_br:
-    label: "IBC-Br"
+    label:
+      en: "IBC-Br"
+      pt: "IBC-Br"
     unit: "Index"
     source: "BCB"
     color: "#0891b2"
@@ -365,7 +409,9 @@ series:
     keywords: ["ibc-br", "ibc", "atividade econômica", "economic activity"]
 
   bcb_debt_gdp:
-    label: "Dívida/PIB"
+    label:
+      en: "Debt/GDP"
+      pt: "Dívida/PIB"
     unit: "% PIB"
     source: "BCB"
     color: "#ea580c"
@@ -377,7 +423,9 @@ series:
     keywords: ["divida", "dívida", "debt gdp", "divida pib"]
 
   bcb_fiscal_balance:
-    label: "Resultado Primário"
+    label:
+      en: "Primary Balance"
+      pt: "Resultado Primário"
     unit: "% PIB"
     source: "BCB"
     color: "#c2410c"
@@ -389,7 +437,9 @@ series:
     keywords: ["resultado primário", "fiscal", "superavit", "superávit", "deficit", "déficit"]
 
   bcb_trade_balance:
-    label: "Balança Comercial"
+    label:
+      en: "Trade Balance"
+      pt: "Balança Comercial"
     unit: "USD mi"
     source: "BCB"
     color: "#059669"
@@ -401,7 +451,9 @@ series:
     keywords: ["balança comercial", "trade balance", "exportações", "importações"]
 
   bcb_reserves:
-    label: "Reservas Internacionais"
+    label:
+      en: "Int'l Reserves"
+      pt: "Reservas Internacionais"
     unit: "USD mi"
     source: "BCB"
     color: "#047857"
@@ -413,7 +465,9 @@ series:
     keywords: ["reservas", "reserves"]
 
   bcb_ibovespa:
-    label: "IBOVESPA"
+    label:
+      en: "IBOVESPA"
+      pt: "IBOVESPA"
     unit: "Points"
     source: "BCB"
     color: "#ca8a04"
@@ -425,7 +479,9 @@ series:
     keywords: ["ibovespa", "bolsa", "bovespa", "stock"]
 
   bcb_consumer_confidence:
-    label: "Confiança Consumidor"
+    label:
+      en: "Consumer Confidence"
+      pt: "Confiança Consumidor"
     unit: "Index"
     source: "BCB"
     color: "#65a30d"
@@ -437,7 +493,9 @@ series:
     keywords: ["confiança consumidor", "consumer confidence", "icc"]
 
   bcb_industry_confidence:
-    label: "Confiança Indústria"
+    label:
+      en: "Industry Confidence"
+      pt: "Confiança Indústria"
     unit: "Index"
     source: "BCB"
     color: "#4d7c0f"
@@ -449,7 +507,9 @@ series:
     keywords: ["confiança indústria", "industry confidence", "ici"]
 
   bcb_m1:
-    label: "M1"
+    label:
+      en: "M1"
+      pt: "M1"
     unit: "R$ mi"
     source: "BCB"
     color: "#0284c7"
@@ -461,7 +521,9 @@ series:
     keywords: ["m1", "oferta monetária", "money supply"]
 
   bcb_m2:
-    label: "M2"
+    label:
+      en: "M2"
+      pt: "M2"
     unit: "R$ mi"
     source: "BCB"
     color: "#0369a1"
@@ -473,7 +535,9 @@ series:
     keywords: ["m2"]
 
   fred_brent:
-    label: "Petróleo Brent"
+    label:
+      en: "Brent Oil"
+      pt: "Petróleo Brent"
     unit: "USD/bbl"
     source: "FRED"
     color: "#854d0e"
@@ -485,7 +549,9 @@ series:
     keywords: ["petróleo", "brent", "oil", "petroleo"]
 
   fred_iron_ore:
-    label: "Minério de Ferro"
+    label:
+      en: "Iron Ore"
+      pt: "Minério de Ferro"
     unit: "USD/t"
     source: "FRED"
     color: "#92400e"
@@ -497,7 +563,9 @@ series:
     keywords: ["minério de ferro", "iron ore", "minerio", "vale"]
 
   fred_soybeans:
-    label: "Soja"
+    label:
+      en: "Soybeans"
+      pt: "Soja"
     unit: "USD/t"
     source: "FRED"
     color: "#a16207"
@@ -509,7 +577,9 @@ series:
     keywords: ["soja", "soybeans", "soybean", "agro"]
 
   fred_fedfunds:
-    label: "Fed Funds Rate"
+    label:
+      en: "Fed Funds Rate"
+      pt: "Fed Funds Rate"
     unit: "%"
     source: "FRED"
     color: "#475569"
@@ -521,7 +591,9 @@ series:
     keywords: ["fed funds", "fed", "federal reserve", "us rate"]
 
   fred_uscpi:
-    label: "CPI EUA"
+    label:
+      en: "US CPI"
+      pt: "CPI EUA"
     unit: "Index"
     source: "FRED"
     color: "#64748b"
@@ -533,7 +605,9 @@ series:
     keywords: ["cpi eua", "us cpi", "us inflation", "inflação eua"]
 
   focus_ipca:
-    label: "FOCUS IPCA"
+    label:
+      en: "FOCUS IPCA"
+      pt: "FOCUS IPCA"
     unit: "% a.a."
     source: "BCB FOCUS"
     color: "#c026d3"
@@ -545,7 +619,9 @@ series:
     keywords: ["focus ipca", "expectativa ipca", "ipca expectation"]
 
   focus_selic:
-    label: "FOCUS SELIC"
+    label:
+      en: "FOCUS SELIC"
+      pt: "FOCUS SELIC"
     unit: "% a.a."
     source: "BCB FOCUS"
     color: "#d946ef"
@@ -557,7 +633,9 @@ series:
     keywords: ["focus selic", "expectativa selic", "selic expectation"]
 
   focus_gdp:
-    label: "FOCUS PIB"
+    label:
+      en: "FOCUS GDP"
+      pt: "FOCUS PIB"
     unit: "% a.a."
     source: "BCB FOCUS"
     color: "#e879f9"
@@ -569,7 +647,9 @@ series:
     keywords: ["focus pib", "focus gdp", "expectativa pib", "gdp expectation"]
 
   focus_fx:
-    label: "FOCUS Câmbio"
+    label:
+      en: "FOCUS FX"
+      pt: "FOCUS Câmbio"
     unit: "R$/USD"
     source: "BCB FOCUS"
     color: "#f0abfc"
@@ -581,7 +661,9 @@ series:
     keywords: ["focus cambio", "focus câmbio", "expectativa cambio", "fx expectation"]
 
   wb_gdp_growth:
-    label: "PIB Brasil (WB)"
+    label:
+      en: "Brazil GDP (WB)"
+      pt: "PIB Brasil (WB)"
     unit: "% a.a."
     source: "World Bank"
     color: "#334155"
@@ -593,7 +675,9 @@ series:
     keywords: ["gdp growth wb", "crescimento pib wb"]
 
   wb_cpi:
-    label: "Inflação Brasil (WB)"
+    label:
+      en: "Brazil CPI (WB)"
+      pt: "Inflação Brasil (WB)"
     unit: "% a.a."
     source: "World Bank"
     color: "#475569"
@@ -605,7 +689,9 @@ series:
     keywords: ["cpi wb", "inflation wb"]
 
   wb_unemployment:
-    label: "Desemprego Brasil (WB)"
+    label:
+      en: "Brazil Unemployment (WB)"
+      pt: "Desemprego Brasil (WB)"
     unit: "%"
     source: "World Bank"
     color: "#64748b"
@@ -617,7 +703,9 @@ series:
     keywords: ["unemployment wb", "desemprego wb"]
 
   wb_current_account:
-    label: "Conta Corrente (WB)"
+    label:
+      en: "Current Account (WB)"
+      pt: "Conta Corrente (WB)"
     unit: "USD"
     source: "World Bank"
     color: "#94a3b8"
@@ -629,7 +717,9 @@ series:
     keywords: ["conta corrente wb", "current account wb"]
 
   ons_electricity:
-    label: "Carga Elétrica"
+    label:
+      en: "Electricity Load"
+      pt: "Carga Elétrica"
     unit: "MWmed"
     source: "ONS"
     color: "#eab308"
@@ -641,7 +731,9 @@ series:
     keywords: ["eletricidade", "electricity", "energia", "energy", "carga", "ons"]
 
   derived_real_rate:
-    label: "Taxa Real de Juros"
+    label:
+      en: "Real Interest Rate"
+      pt: "Taxa Real de Juros"
     unit: "% a.a."
     source: "Derived"
     color: "#dc2626"
@@ -653,7 +745,9 @@ series:
     keywords: ["taxa real", "real rate", "real interest", "juros reais"]
 
   derived_ipca_gdp_divergence:
-    label: "Divergência IPCA-PIB"
+    label:
+      en: "IPCA-GDP Divergence"
+      pt: "Divergência IPCA-PIB"
     unit: "index"
     source: "Derived"
     color: "#f97316"
@@ -665,7 +759,9 @@ series:
     keywords: ["divergência", "divergence", "ipca pib", "ipca gdp", "estagflação", "stagflation"]
 
   derived_yield_spread:
-    label: "Spread da Curva de Juros"
+    label:
+      en: "Yield Curve Spread"
+      pt: "Spread da Curva de Juros"
     unit: "p.p."
     source: "Derived"
     color: "#7c3aed"

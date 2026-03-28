@@ -30,7 +30,7 @@ export interface DomainDataSource {
 }
 
 export interface DomainSeriesConfig {
-  label: string;
+  label: LocalizedStr;
   unit: string;
   source: string;
   color: string;

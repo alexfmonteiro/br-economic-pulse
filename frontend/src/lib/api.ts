@@ -71,7 +71,7 @@ export interface QualityLatest {
 
 // --- Time Ranges ---
 
-export type TimeRange = 'MTD' | 'YTD' | '1Y' | '2Y' | '5Y' | 'ALL';
+export type TimeRange = 'MTD' | 'YTD' | '1Y' | '2Y' | '5Y' | '10Y' | '20Y' | 'ALL';
 
 export function getAfterDate(range: TimeRange): string | null {
   if (range === 'ALL') return null;
@@ -95,6 +95,12 @@ export function getAfterDate(range: TimeRange): string | null {
     case '5Y':
       d = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
       break;
+    case '10Y':
+      d = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+      break;
+    case '20Y':
+      d = new Date(now.getFullYear() - 20, now.getMonth(), now.getDate());
+      break;
   }
 
   return d.toISOString().split('T')[0];
@@ -106,6 +112,8 @@ export const TIME_RANGES: { value: TimeRange; label: string }[] = [
   { value: '1Y', label: '1Y' },
   { value: '2Y', label: '2Y' },
   { value: '5Y', label: '5Y' },
+  { value: '10Y', label: '10Y' },
+  { value: '20Y', label: '20Y' },
   { value: 'ALL', label: 'All' },
 ];
 
@@ -252,11 +260,12 @@ export interface RunHistoryResponse {
 
 /** Build SERIES array from domain config. */
 export function buildSeriesFromConfig(
-  series: Record<string, { label: string; unit: string; source: string; color: string; freshness_hours: number }>,
+  series: Record<string, { label: { en: string; pt: string }; unit: string; source: string; color: string; freshness_hours: number }>,
+  language: 'en' | 'pt' = 'en',
 ): SeriesConfig[] {
   return Object.entries(series).map(([id, s]) => ({
     id,
-    label: s.label,
+    label: s.label[language],
     unit: s.unit,
     source: s.source,
     color: s.color,

@@ -522,7 +522,7 @@ class TestBuildSeriesDescriptions:
         cfg = get_domain_config()
         result = _build_series_descriptions()
         for sid, series in cfg.series.items():
-            assert series.label in result, f"Missing label: {series.label}"
+            assert series.label.en in result, f"Missing label: {series.label.en}"
 
 
 class TestBuildAnomalyPrompt:

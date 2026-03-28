@@ -31,7 +31,7 @@ export function MetricCard({ config, range }: MetricCardProps) {
   const cfg = useDomain();
   const locale = language === 'pt' ? 'pt-BR' : 'en-US';
   const seriesCfg = cfg.series[config.id];
-  const label = seriesCfg?.label ?? config.label;
+  const label = seriesCfg ? seriesCfg.label[language] : config.label;
   const hint = seriesCfg ? localize(seriesCfg.description, language) : '';
   const { data, isLoading, isError } = useMetrics(config.id, range);
 

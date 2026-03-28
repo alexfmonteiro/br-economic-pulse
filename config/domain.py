@@ -76,7 +76,7 @@ class SeriesDisplayConfig(BaseModel):
 
     model_config = ConfigDict(strict=True, extra="forbid")
 
-    label: str
+    label: LocalizedStr
     unit: str
     source: str
     color: str

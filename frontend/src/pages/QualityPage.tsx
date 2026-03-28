@@ -239,9 +239,9 @@ function SeriesFreshnessRow({ label, freshness }: { label: string; freshness: Se
 
 function SeriesFreshnessPanel() {
   const { data, isLoading, isError } = useQualityLatest();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const cfg = useDomain();
-  const SERIES_LIST = buildSeriesFromConfig(cfg.series);
+  const SERIES_LIST = buildSeriesFromConfig(cfg.series, language);
   const seriesMap = cfg.series;
 
   if (isLoading) {
@@ -276,7 +276,7 @@ function SeriesFreshnessPanel() {
         {SERIES_LIST.map((s) => {
           const freshness = freshnessMap.get(s.id);
           if (!freshness) return null;
-          const label = seriesMap[s.id]?.label ?? s.label;
+          const label = seriesMap[s.id] ? seriesMap[s.id].label[language] : s.label;
           return <SeriesFreshnessRow key={s.id} label={label} freshness={freshness} />;
         })}
       </div>

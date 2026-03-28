@@ -16,7 +16,7 @@ export function Dashboard() {
   const syncHealth = health?.sync?.sync_health ?? 'unknown';
   const [range, setRange] = useState<TimeRange>('1Y');
 
-  const SERIES = buildSeriesFromConfig(cfg.series);
+  const SERIES = buildSeriesFromConfig(cfg.series, language);
   const dataSourceNames = cfg.data_sources.map((ds) => ds.name).join(', ');
   const dataSourceFooter = language === 'pt'
     ? `Dados provenientes de ${dataSourceNames}.`

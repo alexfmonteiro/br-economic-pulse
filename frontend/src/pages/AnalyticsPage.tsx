@@ -164,7 +164,7 @@ export function AnalyticsPage() {
   const cfg = useDomain();
   const locale = language === 'pt' ? 'pt-BR' : 'en-US';
 
-  const SERIES = buildSeriesFromConfig(cfg.series);
+  const SERIES = buildSeriesFromConfig(cfg.series, language);
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">

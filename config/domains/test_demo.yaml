@@ -45,7 +45,9 @@ router:
 
 series:
   test_rate:
-    label: "RATE1"
+    label:
+      en: "RATE1"
+      pt: "RATE1"
     unit: "% p.a."
     source: "TDB"
     color: "#3b82f6"
@@ -56,7 +58,9 @@ series:
       pt: "Taxa referência de Testland"
     keywords: ["rate1", "benchmark"]
   test_index:
-    label: "INDEX1"
+    label:
+      en: "INDEX1"
+      pt: "INDEX1"
     unit: "pts"
     source: "TDB"
     color: "#8b5cf6"

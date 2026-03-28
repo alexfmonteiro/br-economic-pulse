@@ -233,9 +233,9 @@ function QualityReportsSection() {
 
 function SeriesFreshnessSection() {
   const { data, isLoading, isError } = useQualityLatest();
-  useLanguage(); // ensure re-render on language change
+  const { language } = useLanguage();
   const cfg = useDomain();
-  const SERIES = buildSeriesFromConfig(cfg.series);
+  const SERIES = buildSeriesFromConfig(cfg.series, language);
 
   if (isLoading) return <Card title="Series Freshness"><Skeleton rows={8} /></Card>;
   if (isError || !data) return <Card title="Series Freshness"><p className="text-sm text-slate-500">Unable to load freshness data</p></Card>;
@@ -262,7 +262,7 @@ function SeriesFreshnessSection() {
       {sortedSeries.map((s) => {
         const f: SeriesFreshnessData | undefined = freshnessMap.get(s.id);
         if (!f) return null;
-        const label = cfg.series[s.id]?.label ?? s.label;
+        const label = cfg.series[s.id] ? cfg.series[s.id].label[language] : s.label;
         return (
           <div key={s.id} className="grid grid-cols-5 gap-2 py-2 border-b border-slate-700/30 last:border-0 text-xs items-center">
             <span className="text-slate-300 font-medium">{label}</span>
