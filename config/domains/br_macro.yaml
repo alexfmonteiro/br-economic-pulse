@@ -109,6 +109,9 @@ series:
     color: "#3b82f6"
     freshness_hours: 72
     domain: monetary_policy
+    typical_range:
+      min: 0.0
+      max: 50.0
     description:
       en: "Benchmark interest rate (taxa SELIC meta) set by Brazil's central bank (COPOM). Higher = tighter monetary policy."
       pt: "Taxa básica de juros definida pelo Banco Central. SELIC mais alta encarece o crédito e freia a inflação; mais baixa estimula empréstimos e o crescimento."
@@ -124,6 +127,9 @@ series:
     freshness_hours: 1080
     domain: inflation
     chart_granularity: month
+    typical_range:
+      min: -1.0
+      max: 3.0
     description:
       en: "Official month-over-month consumer inflation index (IPCA). Above ~0.5%/month signals strong inflationary pressure."
       pt: "Índice oficial de preços ao consumidor, medido mês a mês. Valores positivos indicam alta de preços; acima de ~0,5% ao mês sinaliza pressão inflacionária forte."
@@ -138,6 +144,9 @@ series:
     color: "#22c55e"
     freshness_hours: 72
     domain: exchange_rate
+    typical_range:
+      min: 1.0
+      max: 10.0
     description:
       en: "Exchange rate: how many reais one US dollar buys. Rising = real weakening."
       pt: "Quantos reais um dólar americano compra. Taxa em alta significa que o real está perdendo valor, encarecendo importações."
@@ -153,6 +162,9 @@ series:
     freshness_hours: 2400
     domain: labor_market
     chart_granularity: month
+    typical_range:
+      min: 3.0
+      max: 20.0
     description:
       en: "Unemployment rate from IBGE PNAD household survey. Percentage of working-age population seeking but not finding work."
       pt: "Parcela da população economicamente ativa que procura emprego e não encontra. Medida trimestralmente pela PNAD do IBGE."
@@ -168,6 +180,9 @@ series:
     freshness_hours: 1080
     domain: output
     chart_granularity: month
+    typical_range:
+      min: 100.0
+      max: 1500.0
     description:
       en: "GDP monthly proxy (BCB series 4380) in R$ billions, current prices. Broadest measure of economic output."
       pt: "Valor total de bens e serviços produzidos no Brasil, em bilhões de reais. É a medida mais ampla da atividade econômica."
@@ -183,6 +198,9 @@ series:
     freshness_hours: 1080
     domain: activity
     chart_granularity: month
+    typical_range:
+      min: -15.0
+      max: 15.0
     description:
       en: "Industrial production (PIM-PF) month-over-month change, seasonally adjusted. Industry is ~25% of GDP."
       pt: "Produção industrial (PIM-PF) variação mês a mês, dessazonalizada. Indústria representa ~25% do PIB."
@@ -198,6 +216,9 @@ series:
     freshness_hours: 1440
     domain: activity
     chart_granularity: month
+    typical_range:
+      min: -15.0
+      max: 15.0
     description:
       en: "Retail sales (PMC) month-over-month change, seasonally adjusted. Retail is ~12% of GDP and a direct consumer spending gauge."
       pt: "Vendas no varejo (PMC) variação mês a mês, dessazonalizada. Varejo representa ~12% do PIB e mede o consumo diretamente."
@@ -213,6 +234,9 @@ series:
     freshness_hours: 1440
     domain: activity
     chart_granularity: month
+    typical_range:
+      min: -15.0
+      max: 15.0
     description:
       en: "Services sector (PMS) month-over-month change, seasonally adjusted. Services is ~70% of GDP — the dominant sector."
       pt: "Setor de serviços (PMS) variação mês a mês, dessazonalizada. Serviços representam ~70% do PIB — o setor dominante."
@@ -227,6 +251,9 @@ series:
     color: "#ec4899"
     freshness_hours: 72
     domain: fixed_income
+    typical_range:
+      min: 2.0
+      max: 30.0
     description:
       en: "Average yield of pre-fixed government bonds (Tesouro Prefixado) maturing within 3 years. Reflects near-term market interest rate expectations."
       pt: "Média das taxas dos títulos prefixados (Tesouro Prefixado) com vencimento em até 3 anos. Reflete as expectativas de juros no curto prazo."
@@ -241,6 +268,9 @@ series:
     color: "#f472b6"
     freshness_hours: 72
     domain: fixed_income
+    typical_range:
+      min: 2.0
+      max: 30.0
     description:
       en: "Average yield of pre-fixed government bonds (Tesouro Prefixado) maturing beyond 3 years. Reflects long-term rate expectations. The spread vs short-term indicates yield curve slope."
       pt: "Média das taxas dos títulos prefixados (Tesouro Prefixado) com vencimento acima de 3 anos. Reflete expectativas de juros no longo prazo. Compare com o curto para avaliar a inclinação da curva."
@@ -255,6 +285,9 @@ series:
     color: "#fb923c"
     freshness_hours: 72
     domain: fixed_income
+    typical_range:
+      min: 1.0
+      max: 15.0
     description:
       en: "Average real yield of inflation-linked bonds (IPCA+, Educa+, Renda+). The real interest rate the market demands above IPCA inflation."
       pt: "Média dos juros reais dos títulos atrelados à inflação (IPCA+, Educa+, Renda+). Mostra a taxa real de juros que o mercado exige acima da inflação."
@@ -269,6 +302,9 @@ series:
     color: "#2563eb"
     freshness_hours: 72
     domain: monetary_policy
+    typical_range:
+      min: 0.0
+      max: 0.15
     description:
       en: "Daily interbank rate (CDI). Nearly all Brazilian fixed income is benchmarked to CDI. The SELIC-CDI spread is a liquidity indicator."
       pt: "Taxa interbancária diária (CDI). Quase toda a renda fixa brasileira é indexada ao CDI. O spread SELIC-CDI indica liquidez."
@@ -284,6 +320,9 @@ series:
     freshness_hours: 720
     domain: monetary_policy
     chart_granularity: month
+    typical_range:
+      min: 0.0
+      max: 3.0
     description:
       en: "CDI accumulated monthly rate. Used as benchmark for fund performance and fixed income returns."
       pt: "CDI acumulado no mês. Usado como referência para rendimento de fundos e renda fixa."
@@ -299,6 +338,9 @@ series:
     freshness_hours: 720
     domain: inflation
     chart_granularity: month
+    typical_range:
+      min: -2.0
+      max: 5.0
     description:
       en: "IGP-M monthly variation (FGV). Used for rent adjustments in ~35M contracts. Heavily influenced by wholesale prices and exchange rate."
       pt: "Variação mensal do IGP-M (FGV). Usado para reajuste de aluguéis em ~35M de contratos. Fortemente influenciado por preços no atacado e câmbio."
@@ -314,6 +356,9 @@ series:
     freshness_hours: 1080
     domain: inflation
     chart_granularity: month
+    typical_range:
+      min: -1.0
+      max: 3.0
     description:
       en: "INPC monthly variation (IBGE). Minimum wage adjustment index — affects 50M+ workers."
       pt: "Variação mensal do INPC (IBGE). Índice de reajuste do salário mínimo — afeta mais de 50M de trabalhadores."
@@ -329,6 +374,9 @@ series:
     freshness_hours: 720
     domain: inflation
     chart_granularity: month
+    typical_range:
+      min: -1.0
+      max: 3.0
     description:
       en: "IPCA-15 monthly preview, released ~1 week before official IPCA. Markets move on this as the inflation preview."
       pt: "Prévia mensal do IPCA, divulgada ~1 semana antes do IPCA oficial. Mercados reagem a este indicador como prévia da inflação."
@@ -344,6 +392,9 @@ series:
     freshness_hours: 1440
     domain: credit
     chart_granularity: month
+    typical_range:
+      min: 0.5
+      max: 10.0
     description:
       en: "Credit default rate for the total financial system. Earliest recession warning signal — rising defaults precede spending contraction by 2-3 months."
       pt: "Taxa de inadimplência do sistema financeiro total. Sinal mais precoce de recessão — inadimplência em alta precede queda do consumo em 2-3 meses."
@@ -359,6 +410,9 @@ series:
     freshness_hours: 1440
     domain: credit
     chart_granularity: month
+    typical_range:
+      min: 1.0
+      max: 15.0
     description:
       en: "Credit default rate for individuals (pessoa física). Consumer credit stress indicator."
       pt: "Taxa de inadimplência de pessoa física. Indicador de estresse no crédito ao consumidor."
@@ -374,6 +428,9 @@ series:
     freshness_hours: 1440
     domain: credit
     chart_granularity: month
+    typical_range:
+      min: 0.5
+      max: 10.0
     description:
       en: "Credit default rate for corporates (pessoa jurídica). Business credit stress indicator."
       pt: "Taxa de inadimplência de pessoa jurídica. Indicador de estresse no crédito empresarial."
@@ -389,6 +446,9 @@ series:
     freshness_hours: 720
     domain: credit
     chart_granularity: month
+    typical_range:
+      min: 5.0
+      max: 80.0
     description:
       en: "Average lending rate for new credit operations (total). Shows the actual cost of borrowing in Brazil."
       pt: "Taxa média de juros das novas concessões de crédito (total). Mostra o custo real do crédito no Brasil."
@@ -404,6 +464,9 @@ series:
     freshness_hours: 1440
     domain: credit
     chart_granularity: month
+    typical_range:
+      min: 10.0
+      max: 50.0
     description:
       en: "Household debt to income ratio. Above 25% signals financial stress. Key indicator for consumer spending capacity."
       pt: "Relação dívida/renda das famílias. Acima de 25% sinaliza estresse financeiro. Indicador-chave de capacidade de consumo."
@@ -419,6 +482,9 @@ series:
     freshness_hours: 1080
     domain: activity
     chart_granularity: month
+    typical_range:
+      min: 80.0
+      max: 200.0
     description:
       en: "IBC-Br economic activity index (BCB GDP proxy, seasonally adjusted). Monthly frequency vs quarterly GDP — the fastest official activity gauge."
       pt: "Índice de atividade econômica IBC-Br (proxy mensal do PIB, dessazonalizado). Frequência mensal vs PIB trimestral — o indicador oficial de atividade mais rápido."
@@ -434,6 +500,9 @@ series:
     freshness_hours: 720
     domain: fiscal
     chart_granularity: month
+    typical_range:
+      min: 20.0
+      max: 100.0
     description:
       en: "Net public debt as % of GDP. THE metric for sovereign risk — what rating agencies watch most closely."
       pt: "Dívida pública líquida como % do PIB. O principal indicador de risco soberano — o mais observado pelas agências de rating."
@@ -449,6 +518,9 @@ series:
     freshness_hours: 720
     domain: fiscal
     chart_granularity: month
+    typical_range:
+      min: -10.0
+      max: 5.0
     description:
       en: "Primary fiscal balance (12-month accumulated, % GDP). Positive = surplus, negative = deficit. Drives CDS spreads and long-term yields."
       pt: "Resultado primário consolidado (acumulado 12 meses, % PIB). Positivo = superávit, negativo = déficit. Influencia CDS e juros longos."
@@ -464,6 +536,9 @@ series:
     freshness_hours: 1440
     domain: external
     chart_granularity: month
+    typical_range:
+      min: -10000.0
+      max: 15000.0
     description:
       en: "Trade balance (exports minus imports) in USD millions. Positive = surplus. Key driver of BRL and current account."
       pt: "Balança comercial (exportações menos importações) em USD milhões. Positivo = superávit. Fator-chave do câmbio e conta corrente."
@@ -478,6 +553,9 @@ series:
     color: "#047857"
     freshness_hours: 720
     domain: external
+    typical_range:
+      min: 100000.0
+      max: 500000.0
     description:
       en: "International reserves in USD millions. Buffer against external shocks and currency crises."
       pt: "Reservas internacionais em USD milhões. Colchão contra choques externos e crises cambiais."
@@ -492,6 +570,9 @@ series:
     color: "#ca8a04"
     freshness_hours: 72
     domain: equity
+    typical_range:
+      min: 30000.0
+      max: 250000.0
     description:
       en: "IBOVESPA index closing value. Main Brazilian stock market benchmark, heavily weighted toward commodities and banks."
       pt: "Valor de fechamento do índice IBOVESPA. Principal benchmark do mercado de ações brasileiro, concentrado em commodities e bancos."
@@ -507,6 +588,9 @@ series:
     freshness_hours: 720
     domain: sentiment
     chart_granularity: month
+    typical_range:
+      min: 50.0
+      max: 150.0
     description:
       en: "Consumer confidence index (ICC/FGV). Leading indicator for retail spending. Higher = more optimistic households."
       pt: "Índice de confiança do consumidor (ICC/FGV). Indicador antecedente do consumo no varejo. Maior = famílias mais otimistas."
@@ -522,6 +606,9 @@ series:
     freshness_hours: 720
     domain: sentiment
     chart_granularity: month
+    typical_range:
+      min: 50.0
+      max: 150.0
     description:
       en: "Industry confidence index (ICI/FGV). Leading indicator for industrial production and investment."
       pt: "Índice de confiança da indústria (ICI/FGV). Indicador antecedente da produção industrial e investimento."
@@ -537,6 +624,9 @@ series:
     freshness_hours: 720
     domain: monetary
     chart_granularity: month
+    typical_range:
+      min: 100000.0
+      max: 1500000.0
     description:
       en: "M1 money supply (currency in circulation + demand deposits). Narrow money — most liquid monetary aggregate."
       pt: "Oferta monetária M1 (papel-moeda + depósitos à vista). Agregado monetário mais restrito e líquido."
@@ -552,6 +642,9 @@ series:
     freshness_hours: 720
     domain: monetary
     chart_granularity: month
+    typical_range:
+      min: 1000000.0
+      max: 10000000.0
     description:
       en: "M2 money supply (M1 + savings deposits + time deposits). Broad money indicator — tracks overall liquidity in the economy."
       pt: "Oferta monetária M2 (M1 + poupança + depósitos a prazo). Indicador de liquidez ampla — mede a liquidez total na economia."
@@ -566,6 +659,9 @@ series:
     color: "#854d0e"
     freshness_hours: 72
     domain: commodities
+    typical_range:
+      min: 20.0
+      max: 200.0
     description:
       en: "Brent crude oil price (USD/barrel). Key driver of Brazilian trade balance and Petrobras revenue."
       pt: "Preço do petróleo Brent (USD/barril). Fator-chave da balança comercial e receita da Petrobras."
@@ -580,6 +676,9 @@ series:
     color: "#92400e"
     freshness_hours: 720
     domain: commodities
+    typical_range:
+      min: 30.0
+      max: 250.0
     description:
       en: "Iron ore price (62% Fe, USD/dry metric ton). Brazil's #1 export commodity — directly impacts Vale and trade balance."
       pt: "Preço do minério de ferro (62% Fe, USD/tonelada seca). Principal commodity de exportação do Brasil — impacta Vale e balança comercial."
@@ -594,6 +693,9 @@ series:
     color: "#a16207"
     freshness_hours: 720
     domain: commodities
+    typical_range:
+      min: 200.0
+      max: 800.0
     description:
       en: "Soybeans price (USD/metric ton). Brazil is the world's largest producer — agribusiness drives rural GDP."
       pt: "Preço da soja (USD/tonelada métrica). Brasil é o maior produtor mundial — agronegócio impulsiona o PIB rural."
@@ -609,6 +711,9 @@ series:
     freshness_hours: 720
     domain: international
     chart_granularity: month
+    typical_range:
+      min: 0.0
+      max: 20.0
     description:
       en: "US Federal Funds effective rate. Global risk-free reference — the spread vs SELIC drives capital flows to/from Brazil."
       pt: "Taxa efetiva dos Fed Funds dos EUA. Referência global de taxa livre de risco — o spread vs SELIC determina fluxos de capital."
@@ -624,6 +729,9 @@ series:
     freshness_hours: 720
     domain: international
     chart_granularity: month
+    typical_range:
+      min: 100.0
+      max: 400.0
     description:
       en: "US Consumer Price Index (1982-84=100). US inflation trajectory influences Fed policy, which in turn affects emerging markets including Brazil."
       pt: "Índice de preços ao consumidor dos EUA (1982-84=100). Trajetória da inflação americana influencia política do Fed, que afeta mercados emergentes como o Brasil."
@@ -639,6 +747,9 @@ series:
     freshness_hours: 168
     domain: inflation
     chart_granularity: week
+    typical_range:
+      min: 1.0
+      max: 15.0
     description:
       en: "Market consensus expectation for year-end IPCA inflation. Updated weekly (Monday). 120+ financial institutions surveyed."
       pt: "Expectativa de consenso do mercado para IPCA no fim do ano. Atualizado semanalmente (segunda-feira). 120+ instituições pesquisadas."
@@ -654,6 +765,9 @@ series:
     freshness_hours: 168
     domain: monetary_policy
     chart_granularity: week
+    typical_range:
+      min: 1.0
+      max: 30.0
     description:
       en: "Market consensus expectation for year-end SELIC rate. The gap between FOCUS consensus and DI curve pricing signals market positioning."
       pt: "Expectativa de consenso do mercado para SELIC no fim do ano. A diferença entre FOCUS e curva DI sinaliza posicionamento do mercado."
@@ -669,6 +783,9 @@ series:
     freshness_hours: 168
     domain: output
     chart_granularity: week
+    typical_range:
+      min: -10.0
+      max: 10.0
     description:
       en: "Market consensus expectation for annual GDP growth. Leading indicator for economic outlook."
       pt: "Expectativa de consenso do mercado para crescimento do PIB anual. Indicador antecedente da perspectiva econômica."
@@ -684,6 +801,9 @@ series:
     freshness_hours: 168
     domain: exchange_rate
     chart_granularity: week
+    typical_range:
+      min: 1.0
+      max: 10.0
     description:
       en: "Market consensus expectation for year-end USD/BRL exchange rate."
       pt: "Expectativa de consenso do mercado para câmbio USD/BRL no fim do ano."
@@ -699,6 +819,9 @@ series:
     freshness_hours: 2160
     domain: international
     chart_granularity: year
+    typical_range:
+      min: -10.0
+      max: 10.0
     description:
       en: "Brazil GDP growth rate (annual %) from World Bank. Comparable cross-country methodology."
       pt: "Crescimento do PIB do Brasil (% anual) pelo Banco Mundial. Metodologia comparável entre países."
@@ -714,6 +837,9 @@ series:
     freshness_hours: 2160
     domain: international
     chart_granularity: year
+    typical_range:
+      min: -2.0
+      max: 20.0
     description:
       en: "Brazil CPI inflation (annual %) from World Bank. Enables cross-country inflation comparison."
       pt: "Inflação pelo IPC do Brasil (% anual) pelo Banco Mundial. Permite comparação internacional."
@@ -729,6 +855,9 @@ series:
     freshness_hours: 2160
     domain: international
     chart_granularity: year
+    typical_range:
+      min: 3.0
+      max: 20.0
     description:
       en: "Brazil unemployment rate (% of labor force) from World Bank (ILO estimate)."
       pt: "Taxa de desemprego do Brasil (% da força de trabalho) pelo Banco Mundial (estimativa OIT)."
@@ -744,6 +873,9 @@ series:
     freshness_hours: 2160
     domain: international
     chart_granularity: year
+    typical_range:
+      min: -100000000000.0
+      max: 50000000000.0
     description:
       en: "Brazil current account balance (USD) from World Bank. Negative = deficit, importing more capital than exporting."
       pt: "Saldo em conta corrente do Brasil (USD) pelo Banco Mundial. Negativo = déficit, importando mais capital do que exportando."
@@ -758,6 +890,9 @@ series:
     color: "#eab308"
     freshness_hours: 48
     domain: activity
+    typical_range:
+      min: 30000.0
+      max: 110000.0
     description:
       en: "Daily national electricity load (sum of 4 subsystems). Real-time GDP proxy — daily frequency with zero lag while official GDP lags 2-3 months. No other free Brazilian platform offers this."
       pt: "Carga diária nacional de energia elétrica (soma dos 4 subsistemas). Proxy do PIB em tempo real — frequência diária sem defasagem enquanto PIB oficial atrasa 2-3 meses."
@@ -773,6 +908,9 @@ series:
     freshness_hours: 168
     domain: monetary_policy
     chart_granularity: month
+    typical_range:
+      min: -10.0
+      max: 20.0
     description:
       en: "Real interest rate: SELIC annualized minus trailing 12-month compounded IPCA. Core indicator of monetary policy stance — positive real rate indicates restrictive policy."
       pt: "Taxa real de juros: SELIC anualizada menos IPCA acumulado 12 meses. Indicador central da postura monetária — taxa real positiva indica política restritiva."
@@ -788,6 +926,9 @@ series:
     freshness_hours: 168
     domain: activity
     chart_granularity: month
+    typical_range:
+      min: -5.0
+      max: 5.0
     description:
       en: "IPCA vs GDP proxy (IBC-Br) normalized spread. Positive values signal inflation outpacing growth (stagflationary pressure). Computed as z-score(IPCA) minus z-score(IBC-Br)."
       pt: "Spread normalizado IPCA vs proxy do PIB (IBC-Br). Valores positivos sinalizam inflação superando crescimento (pressão estagflacionária). Calculado como z-score(IPCA) menos z-score(IBC-Br)."
@@ -802,6 +943,9 @@ series:
     color: "#7c3aed"
     freshness_hours: 168
     domain: fixed_income
+    typical_range:
+      min: -5.0
+      max: 5.0
     description:
       en: "Yield curve slope: long-term prefixado minus short-term prefixado rate. Positive = normal curve (growth expectation). Negative = inverted curve (recession signal)."
       pt: "Inclinação da curva de juros: taxa prefixado longo menos prefixado curto. Positivo = curva normal (expectativa de crescimento). Negativo = curva invertida (sinal de recessão)."

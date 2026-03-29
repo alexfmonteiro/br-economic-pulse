@@ -265,3 +265,107 @@ async def test_quality_fallback_to_defaults(good_bronze_data: Path) -> None:
     result = await task.run()
 
     assert result.success is True
+
+
+# ---------------------------------------------------------------------------
+# typical_range quality checks (recent data only)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio()
+async def test_quality_gold_typical_range_catches_contaminated_ipca(
+    tmp_path: Path,
+) -> None:
+    """typical_range should catch IPCA values that look like 12M accumulated."""
+    # bcb_ipca typical_range is [-1, 3]. Values of 3.81 (accumulated) should fail.
+    dates = [dt.datetime(2026, 1, 1), dt.datetime(2026, 2, 1)]
+    _write_parquet(tmp_path, "gold/bcb_ipca.parquet", {
+        "date": dates,
+        "value": [3.81, 4.23],  # 12M accumulated values, NOT monthly
+        "series": ["bcb_ipca", "bcb_ipca"],
+        "unit": ["% a.m.", "% a.m."],
+        "last_updated_at": ["2026-01-01T00:00:00"] * 2,
+        "calculation_version": ["1.0.0"] * 2,
+        "mom_delta": [None, 0.42],
+        "yoy_delta": [None, None],
+        "rolling_12m_avg": [3.81, 4.02],
+        "z_score": [None, None],
+    })
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(storage=storage, stage=PipelineStage.POST_TRANSFORMATION)
+    await task.run()
+
+    keys = await storage.list_keys("quality")
+    report_data = await storage.read(sorted(keys)[-1])
+    report = json.loads(report_data)
+    tr_checks = [c for c in report["checks"] if "typical_range" in c["check_name"]]
+    assert len(tr_checks) == 1
+    assert not tr_checks[0]["passed"]
+    assert "bcb_ipca" in tr_checks[0]["message"]
+
+
+@pytest.mark.asyncio()
+async def test_quality_gold_typical_range_passes_correct_ipca(
+    tmp_path: Path,
+) -> None:
+    """Correct monthly IPCA values should pass typical_range check."""
+    dates = [dt.datetime(2026, 1, 1), dt.datetime(2026, 2, 1)]
+    _write_parquet(tmp_path, "gold/bcb_ipca.parquet", {
+        "date": dates,
+        "value": [0.33, 0.70],  # Normal monthly IPCA values
+        "series": ["bcb_ipca", "bcb_ipca"],
+        "unit": ["% a.m.", "% a.m."],
+        "last_updated_at": ["2026-01-01T00:00:00"] * 2,
+        "calculation_version": ["1.0.0"] * 2,
+        "mom_delta": [None, 0.37],
+        "yoy_delta": [None, None],
+        "rolling_12m_avg": [0.33, 0.515],
+        "z_score": [None, None],
+    })
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(storage=storage, stage=PipelineStage.POST_TRANSFORMATION)
+    await task.run()
+
+    keys = await storage.list_keys("quality")
+    report_data = await storage.read(sorted(keys)[-1])
+    report = json.loads(report_data)
+    tr_checks = [c for c in report["checks"] if "typical_range" in c["check_name"]]
+    assert len(tr_checks) == 1
+    assert tr_checks[0]["passed"]
+
+
+@pytest.mark.asyncio()
+async def test_quality_gold_typical_range_allows_historical_extremes(
+    tmp_path: Path,
+) -> None:
+    """Historical extremes outside typical_range should pass (only recent data checked)."""
+    # Mix of old extreme data and recent normal data
+    dates = [
+        dt.datetime(1994, 7, 1),  # Historical extreme (post-Plano Real)
+        dt.datetime(1994, 8, 1),
+        dt.datetime(2026, 1, 1),  # Recent normal data
+        dt.datetime(2026, 2, 1),
+    ]
+    _write_parquet(tmp_path, "gold/bcb_ipca.parquet", {
+        "date": dates,
+        "value": [6.84, 1.86, 0.33, 0.70],  # 1994 values are outside [-1, 3]
+        "series": ["bcb_ipca"] * 4,
+        "unit": ["% a.m."] * 4,
+        "last_updated_at": ["2026-01-01T00:00:00"] * 4,
+        "calculation_version": ["1.0.0"] * 4,
+        "mom_delta": [None, -4.98, None, 0.37],
+        "yoy_delta": [None, None, None, None],
+        "rolling_12m_avg": [6.84, 4.35, 0.33, 0.515],
+        "z_score": [None, None, None, None],
+    })
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(storage=storage, stage=PipelineStage.POST_TRANSFORMATION)
+    await task.run()
+
+    keys = await storage.list_keys("quality")
+    report_data = await storage.read(sorted(keys)[-1])
+    report = json.loads(report_data)
+    tr_checks = [c for c in report["checks"] if "typical_range" in c["check_name"]]
+    assert len(tr_checks) == 1
+    # Should pass — only recent values (2026) are checked, and those are within range
+    assert tr_checks[0]["passed"]

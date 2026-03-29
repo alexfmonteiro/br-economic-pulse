@@ -19,6 +19,7 @@ from api.models import (
     SeriesReconciliation,
     TaskResult,
 )
+from config import get_domain_config
 from storage.protocol import StorageBackend
 from tasks.base import BaseTask
 
@@ -373,6 +374,48 @@ class QualityTask(BaseTask):
                                 f"{series_name} has {out_of_range} values out of range"
                                 f" [{val_min}, {val_max}]"
                                 if out_of_range > 0
+                                else ""
+                            ),
+                        )
+                    )
+
+            # Typical-range check on recent data (last 24 months)
+            # Uses domain config typical_range — tighter than feed-level
+            # value_range, but only applied to recent data to allow
+            # historical extremes.
+            cfg = get_domain_config()
+            series_cfg = cfg.series.get(series_name)
+            if (
+                series_cfg
+                and series_cfg.typical_range
+                and "value" in table.column_names
+                and "date" in table.column_names
+            ):
+                tr = series_cfg.typical_range
+                conn = duckdb.connect()
+                conn.register("_tr", table)
+                tr_result = conn.execute(
+                    "SELECT "
+                    "  COUNT(*) FILTER (WHERE value IS NOT NULL) AS total, "
+                    "  COUNT(*) FILTER (WHERE value IS NOT NULL AND "
+                    f"    (value < {tr.min} OR value > {tr.max})) AS oor "
+                    "FROM _tr "
+                    "WHERE date >= CURRENT_DATE - INTERVAL '24 months'"
+                ).fetchone()
+                conn.close()
+                assert tr_result is not None
+                tr_total, tr_oor = tr_result
+
+                if tr_total and tr_total > 0:
+                    checks.append(
+                        QualityCheckResult(
+                            check_name=f"typical_range_{series_name}",
+                            passed=tr_oor == 0,
+                            metric_value=float(tr_oor),
+                            message=(
+                                f"{series_name} has {tr_oor} recent values "
+                                f"outside typical_range [{tr.min}, {tr.max}]"
+                                if tr_oor > 0
                                 else ""
                             ),
                         )

@@ -71,6 +71,15 @@ class RouterConfig(BaseModel):
     direct_lookup_patterns: list[RouterPatternConfig]
 
 
+class TypicalRange(BaseModel):
+    """Expected value range for sanity-checking data quality."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    min: float
+    max: float
+
+
 class SeriesDisplayConfig(BaseModel):
     """Display metadata for a tracked data series."""
 
@@ -85,6 +94,7 @@ class SeriesDisplayConfig(BaseModel):
     description: LocalizedStr
     keywords: list[str]
     chart_granularity: str = "day"
+    typical_range: TypicalRange | None = None
 
 
 class LandingFeatureConfig(BaseModel):

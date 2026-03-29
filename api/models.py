@@ -503,6 +503,13 @@ class PublicDataSource(BaseModel):
     description: PublicLocalizedStr
 
 
+class PublicTypicalRange(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    min: float
+    max: float
+
+
 class PublicSeriesConfig(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
 
@@ -515,6 +522,7 @@ class PublicSeriesConfig(BaseModel):
     description: PublicLocalizedStr
     keywords: list[str]
     chart_granularity: str = "day"
+    typical_range: PublicTypicalRange | None = None
 
 
 class PublicLandingFeature(BaseModel):

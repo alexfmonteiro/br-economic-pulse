@@ -11,6 +11,7 @@ import pyarrow.parquet as pq
 import structlog
 
 from api.models import SeriesReconciliation, TaskResult
+from config import get_domain_config
 from storage.protocol import StorageBackend
 from tasks.base import BaseTask
 
@@ -325,6 +326,46 @@ class CrossSeriesTask(BaseTask):
         key = f"gold/{series}.parquet"
         await self._storage.write(key, buf.getvalue())
 
+    @staticmethod
+    def _validate_typical_range(
+        series_id: str, table: pa.Table,
+    ) -> list[str]:
+        """Validate that computed values fall within the configured typical_range.
+
+        Returns a list of warning messages for out-of-range values.
+        """
+        cfg = get_domain_config()
+        series_cfg = cfg.series.get(series_id)
+        if not series_cfg or not series_cfg.typical_range:
+            return []
+
+        tr = series_cfg.typical_range
+        values = [v for v in table.column("value").to_pylist() if v is not None]
+        if not values:
+            return []
+
+        violations: list[str] = []
+        below = [v for v in values if v < tr.min]
+        above = [v for v in values if v > tr.max]
+
+        if below:
+            worst = min(below)
+            violations.append(
+                f"{series_id}: {len(below)} values below typical_range.min "
+                f"({tr.min}), worst={worst:.4f}"
+            )
+        if above:
+            worst = max(above)
+            violations.append(
+                f"{series_id}: {len(above)} values above typical_range.max "
+                f"({tr.max}), worst={worst:.4f}"
+            )
+
+        for v in violations:
+            logger.error("cross_series.typical_range_violation", detail=v)
+
+        return violations
+
     async def _compute_derived_real_rate(self) -> tuple[int, SeriesReconciliation]:
         """Compute and write derived_real_rate gold series."""
         selic = await self._read_gold("bcb_selic")
@@ -338,7 +379,22 @@ class CrossSeriesTask(BaseTask):
                 missing.append("bcb_ipca")
             raise ValueError(f"Missing source series: {', '.join(missing)}")
 
+        # Validate source IPCA data before computing
+        ipca_violations = self._validate_typical_range("bcb_ipca", ipca)
+        if ipca_violations:
+            raise ValueError(
+                f"Source data failed sanity check: {'; '.join(ipca_violations)}"
+            )
+
         result = compute_real_rate(selic, ipca)
+
+        # Validate derived output
+        violations = self._validate_typical_range("derived_real_rate", result)
+        if violations:
+            raise ValueError(
+                f"Derived values outside typical range: {'; '.join(violations)}"
+            )
+
         await self._write_gold("derived_real_rate", result)
 
         rows = result.num_rows
@@ -363,6 +419,15 @@ class CrossSeriesTask(BaseTask):
             raise ValueError(f"Missing source series: {', '.join(missing)}")
 
         result = compute_ipca_gdp_divergence(ipca, ibc)
+
+        violations = self._validate_typical_range(
+            "derived_ipca_gdp_divergence", result,
+        )
+        if violations:
+            raise ValueError(
+                f"Derived values outside typical range: {'; '.join(violations)}"
+            )
+
         await self._write_gold("derived_ipca_gdp_divergence", result)
 
         rows = result.num_rows
@@ -387,6 +452,13 @@ class CrossSeriesTask(BaseTask):
             raise ValueError(f"Missing source series: {', '.join(missing)}")
 
         result = compute_yield_spread(long_rate, short_rate)
+
+        violations = self._validate_typical_range("derived_yield_spread", result)
+        if violations:
+            raise ValueError(
+                f"Derived values outside typical range: {'; '.join(violations)}"
+            )
+
         await self._write_gold("derived_yield_spread", result)
 
         rows = result.num_rows

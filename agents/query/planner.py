@@ -15,6 +15,7 @@ import structlog
 
 from agents.query.router import METRIC_KEYWORDS, detect_domains, get_series_for_domains
 from api.dependencies import query_gold_series
+from config import get_domain_config
 from api.models import (
     AggregationLevel,
     ComparisonType,
@@ -175,6 +176,7 @@ class QueryPlanner:
                 context = self._build_series_context(
                     rows, label, unit, desc, days, intent.aggregation,
                     time_range=intent.time_range,
+                    series_id=series_id,
                 )
                 lines.append(context)
             else:
@@ -307,6 +309,7 @@ class QueryPlanner:
         days: int | None,
         aggregation: AggregationLevel,
         time_range: str = "all",
+        series_id: str | None = None,
     ) -> str:
         """Build an aggregated context string for a relevant series."""
         rows = self._filter_rows_by_time(rows, days, time_range)
@@ -320,10 +323,25 @@ class QueryPlanner:
             date_str = d.strftime("%Y-%m-%d") if isinstance(d, datetime) else str(d)
             z = latest.get("z_score", "N/A")
             mom = latest.get("mom_delta", "N/A")
+
+            # Check typical range from series config
+            range_flag = ""
+            if series_id:
+                cfg = get_domain_config()
+                scfg = cfg.series.get(series_id)
+                if scfg and scfg.typical_range:
+                    tr = scfg.typical_range
+                    val = latest["value"]
+                    if val is not None and (val < tr.min or val > tr.max):
+                        range_flag = (
+                            f" [WARNING: value {val} is outside typical "
+                            f"range {tr.min} to {tr.max}]"
+                        )
+
             return (
                 f"{label} ({unit}) — {desc}\n"
                 f"  Latest: {latest['value']} on {date_str} "
-                f"(z-score={z}, MoM delta={mom})"
+                f"(z-score={z}, MoM delta={mom}){range_flag}"
             )
 
         # Aggregate via DuckDB for efficiency
