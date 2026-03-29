@@ -211,6 +211,10 @@ class TransformationTask(BaseTask):
         agg_func = feed.processing.silver.aggregation
         if agg_func in ("avg", "sum"):
             sql_agg = "AVG" if agg_func == "avg" else "SUM"
+            # Deduplicate by (date, value) before aggregating so that
+            # duplicate bronze ingestion runs do not inflate SUM/AVG.
+            # _ingested_at varies between runs, defeating SELECT DISTINCT,
+            # so we use ROW_NUMBER to keep only one copy per (date, value).
             return f"""
                 SELECT
                     date,
@@ -220,7 +224,13 @@ class TransformationTask(BaseTask):
                     MAX(_cleaned_at) AS _cleaned_at,
                     ANY_VALUE(_transformation_version) AS _transformation_version,
                     MAX(_ingested_at) AS _ingested_at
-                FROM ({base_sql}) _agg
+                FROM (
+                    SELECT * FROM ({base_sql}) _pre_agg
+                    QUALIFY ROW_NUMBER() OVER (
+                        PARTITION BY date, value
+                        ORDER BY _ingested_at DESC
+                    ) = 1
+                ) _agg
                 GROUP BY date
                 ORDER BY date
             """

@@ -356,3 +356,56 @@ async def test_transformation_bronze_source(
     assert table.num_rows == 1
     value = table.column("value")[0].as_py()
     assert abs(value - 7.4) < 0.01
+
+
+# -- ONS electricity sample: 4 subsystems, 1 date --
+ONS_SAMPLE_DATA = [
+    {"din_instante": "2026-01-01", "id_subsistema": "1", "nom_subsistema": "SE/CO",
+     "val_cargaenergiamwmed": "40000.50"},
+    {"din_instante": "2026-01-01", "id_subsistema": "2", "nom_subsistema": "S",
+     "val_cargaenergiamwmed": "11000.25"},
+    {"din_instante": "2026-01-01", "id_subsistema": "3", "nom_subsistema": "NE",
+     "val_cargaenergiamwmed": "12000.75"},
+    {"din_instante": "2026-01-01", "id_subsistema": "4", "nom_subsistema": "N",
+     "val_cargaenergiamwmed": "7500.00"},
+]
+ONS_EXPECTED_SUM = 40000.50 + 11000.25 + 12000.75 + 7500.00  # 70501.50
+
+
+@pytest.mark.asyncio()
+async def test_aggregation_sum_dedup_duplicate_bronze(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """SUM aggregation must produce correct values even with duplicate bronze files.
+
+    Regression test: multiple ingestion runs appending the same source data as
+    separate bronze files must not inflate the aggregated SUM.
+    """
+    # Write the SAME data as 3 separate bronze files (simulating 3 ingestion runs)
+    for i in range(3):
+        _write_bronze_parquet(
+            tmp_path,
+            "ons_electricity",
+            ONS_SAMPLE_DATA,
+            filename=f"2026010{i + 1}_080000_000000.parquet",
+        )
+
+    configs = {"ons_electricity": feed_configs["ons_electricity"]}
+    storage = LocalStorageBackend(tmp_path)
+    task = TransformationTask(storage=storage, feed_configs=configs)
+    result = await task.run()
+    assert result.success is True
+
+    gold_data = await storage.read("gold/ons_electricity.parquet")
+    table = pq.read_table(io.BytesIO(gold_data))
+
+    # Should have exactly 1 row (1 date, summed across 4 subsystems)
+    assert table.num_rows == 1
+    value = table.column("value")[0].as_py()
+    assert isinstance(value, float)
+    # Value must equal the correct sum, NOT 3x the sum
+    assert abs(value - ONS_EXPECTED_SUM) < 0.01, (
+        f"Expected {ONS_EXPECTED_SUM}, got {value}. "
+        f"Duplicate bronze files likely inflated the SUM."
+    )
