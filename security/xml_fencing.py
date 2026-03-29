@@ -107,8 +107,10 @@ def build_anomaly_prompt(
         "Analyze the statistical anomalies above. For each anomaly or cluster "
         "of related anomalies, explain the likely economic cause. "
         "Be specific about historical events and their economic mechanisms. "
-        f"Produce sections for each supported language ({langs}), "
-        "wrapped in XML tags like <pt>...</pt> and <en>...</en>."
+        f"Produce the FULL analysis in each supported language ({langs}). "
+        "Wrap each language section in XML tags: <pt>full analysis in "
+        "Portuguese</pt> then <en>full analysis in English</en>. "
+        "Both sections must contain the complete analysis."
     )
     return system, user
 

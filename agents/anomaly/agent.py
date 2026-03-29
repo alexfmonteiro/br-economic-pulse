@@ -275,7 +275,7 @@ class AnomalyAgent(BaseAgent):
             client = anthropic.AsyncAnthropic(api_key=api_key)
             response = await client.messages.create(
                 model=_MODEL_VERSION,
-                max_tokens=2048,
+                max_tokens=4096,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
