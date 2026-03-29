@@ -85,7 +85,7 @@ data_sources:
       pt: "Carga de energia elétrica diária — proxy do PIB em tempo real sem defasagem"
   - id: derived
     name: "Derived (Computed)"
-    url: "https://github.com/alexmonteiro/veredas"
+    url: "https://veredasdata.com"
     description:
       en: "Cross-series derived indicators computed by the pipeline (real rate, yield spread, divergence metrics)"
       pt: "Indicadores derivados entre séries computados pelo pipeline (taxa real, spread de juros, métricas de divergência)"
@@ -524,7 +524,15 @@ series:
     description:
       en: "Primary fiscal balance (12-month accumulated, % GDP). Positive = surplus, negative = deficit. Drives CDS spreads and long-term yields."
       pt: "Resultado primário consolidado (acumulado 12 meses, % PIB). Positivo = superávit, negativo = déficit. Influencia CDS e juros longos."
-    keywords: ["resultado primário", "fiscal", "superavit", "superávit", "deficit", "déficit"]
+    keywords:
+      [
+        "resultado primário",
+        "fiscal",
+        "superavit",
+        "superávit",
+        "deficit",
+        "déficit",
+      ]
 
   bcb_trade_balance:
     label:
@@ -542,7 +550,8 @@ series:
     description:
       en: "Trade balance (exports minus imports) in USD millions. Positive = surplus. Key driver of BRL and current account."
       pt: "Balança comercial (exportações menos importações) em USD milhões. Positivo = superávit. Fator-chave do câmbio e conta corrente."
-    keywords: ["balança comercial", "trade balance", "exportações", "importações"]
+    keywords:
+      ["balança comercial", "trade balance", "exportações", "importações"]
 
   bcb_reserves:
     label:
@@ -807,7 +816,8 @@ series:
     description:
       en: "Market consensus expectation for year-end USD/BRL exchange rate."
       pt: "Expectativa de consenso do mercado para câmbio USD/BRL no fim do ano."
-    keywords: ["focus cambio", "focus câmbio", "expectativa cambio", "fx expectation"]
+    keywords:
+      ["focus cambio", "focus câmbio", "expectativa cambio", "fx expectation"]
 
   wb_gdp_growth:
     label:
@@ -896,7 +906,8 @@ series:
     description:
       en: "Daily national electricity load (sum of 4 subsystems). Real-time GDP proxy — daily frequency with zero lag while official GDP lags 2-3 months. No other free Brazilian platform offers this."
       pt: "Carga diária nacional de energia elétrica (soma dos 4 subsistemas). Proxy do PIB em tempo real — frequência diária sem defasagem enquanto PIB oficial atrasa 2-3 meses."
-    keywords: ["eletricidade", "electricity", "energia", "energy", "carga", "ons"]
+    keywords:
+      ["eletricidade", "electricity", "energia", "energy", "carga", "ons"]
 
   derived_real_rate:
     label:
@@ -932,7 +943,15 @@ series:
     description:
       en: "IPCA vs GDP proxy (IBC-Br) normalized spread. Positive values signal inflation outpacing growth (stagflationary pressure). Computed as z-score(IPCA) minus z-score(IBC-Br)."
       pt: "Spread normalizado IPCA vs proxy do PIB (IBC-Br). Valores positivos sinalizam inflação superando crescimento (pressão estagflacionária). Calculado como z-score(IPCA) menos z-score(IBC-Br)."
-    keywords: ["divergência", "divergence", "ipca pib", "ipca gdp", "estagflação", "stagflation"]
+    keywords:
+      [
+        "divergência",
+        "divergence",
+        "ipca pib",
+        "ipca gdp",
+        "estagflação",
+        "stagflation",
+      ]
 
   derived_yield_spread:
     label:
@@ -949,7 +968,8 @@ series:
     description:
       en: "Yield curve slope: long-term prefixado minus short-term prefixado rate. Positive = normal curve (growth expectation). Negative = inverted curve (recession signal)."
       pt: "Inclinação da curva de juros: taxa prefixado longo menos prefixado curto. Positivo = curva normal (expectativa de crescimento). Negativo = curva invertida (sinal de recessão)."
-    keywords: ["yield spread", "curva de juros", "yield curve", "inclinação", "slope"]
+    keywords:
+      ["yield spread", "curva de juros", "yield curve", "inclinação", "slope"]
 
 app:
   title: "Veredas"
@@ -957,7 +977,7 @@ app:
   meta_description:
     en: "AI-powered Brazilian macroeconomic data — SELIC, IPCA, USD/BRL, GDP and 44 more indicators from official sources"
     pt: "Dados macroeconômicos brasileiros com IA — SELIC, IPCA, USD/BRL, PIB e mais 44 indicadores de fontes oficiais"
-  github_url: "https://github.com/alexmonteiro/veredas"
+  github_url: "https://veredas.finance"
 
 landing:
   hero_title:
@@ -972,8 +992,8 @@ landing:
         en: "Ask in Plain Language"
         pt: "Pergunte em Linguagem Natural"
       description:
-        en: "\"What's the current SELIC rate?\" \"How has IPCA trended since 2023?\" Ask questions about Brazilian macro data and get cited, sourced answers."
-        pt: "\"Qual a SELIC atual?\" \"Como o IPCA evoluiu desde 2023?\" Pergunte sobre dados macro do Brasil e receba respostas com fontes citadas."
+        en: '"What''s the current SELIC rate?" "How has IPCA trended since 2023?" Ask questions about Brazilian macro data and get cited, sourced answers.'
+        pt: '"Qual a SELIC atual?" "Como o IPCA evoluiu desde 2023?" Pergunte sobre dados macro do Brasil e receba respostas com fontes citadas.'
     - icon: alert
       title:
         en: "Anomaly Detection"
@@ -990,8 +1010,22 @@ landing:
         pt: "SELIC, IPCA, USD/BRL, PIB, desemprego, produção industrial, títulos públicos, commodities e mais — atualizados diariamente do Banco Central, IBGE, Tesouro e FRED."
     - icon: globe
       title:
-        en: "Open Source, Accessible Pricing"
-        pt: "Código Aberto, Preço Acessível"
+        en: "Institutional Grade, Accessible Pricing"
+        pt: "Nível Institucional, Preço Acessível"
       description:
-        en: "Fully open source, bilingual (PT/EN). The intelligence layer between free public APIs and R$170K/year terminals."
-        pt: "Totalmente open source, bilíngue (PT/EN). A camada de inteligência entre APIs públicas gratuitas e terminais de R$170 mil/ano."
+        en: "Enterprise reliability, bilingual (PT/EN). The intelligence layer between free public APIs and R$170K/year terminals."
+        pt: "Confiabilidade corporativa, bilíngue (PT/EN). A camada de inteligência entre APIs públicas gratuitas e terminais de R$170 mil/ano."
+    - icon: document
+      title:
+        en: "Daily Insight Digest"
+        pt: "Resumo Diário de Insights"
+      description:
+        en: "Start your day with an AI-generated summary of yesterday's market movements, putting raw data into macroeconomic context."
+        pt: "Comece seu dia com um resumo gerado por IA dos movimentos de mercado de ontem, colocando os dados brutos em contexto macroeconômico."
+    - icon: download
+      title:
+        en: "Export & Integration"
+        pt: "Exportação e Integração"
+      description:
+        en: "Export historical time series to CSV for your own models. Every data point comes with a freshness badge and verified source link."
+        pt: "Exporte séries temporais históricas para CSV para seus próprios modelos. Cada dado possui atestado de atualização e link de fonte verificada."

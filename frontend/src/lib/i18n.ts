@@ -29,10 +29,10 @@ export const translations = {
       step3Title: "Stay informed",
       step3Desc:
         "Daily AI-generated insights and weekly anomaly alerts. Never miss a COPOM decision or an inflation surprise.",
-      openSourceTitle: "Fully Open Source",
+      openSourceTitle: "Institutional-Grade Data",
       openSourceDesc:
-        "Every line of code is public. Verify the data pipeline, audit the AI prompts, or deploy your own instance.",
-      viewOnGithub: "View on GitHub",
+        "Rigorous data validation pipeline ensures accuracy and reliability across millions of data points.",
+      viewOnGithub: "Read Our Methodology",
       footerLinks: "Links",
     },
     insight: {
@@ -93,18 +93,18 @@ export const translations = {
       whatIsDesc:
         "Veredas collects macroeconomic data from 8 official Brazilian sources — Banco Central, IBGE, Tesouro Nacional, FRED and more — validates it daily, and makes it queryable through AI. Ask a question in plain language, get a sourced answer.",
       dataSources: "Data Sources",
-      openSource: "Open Source",
+      openSource: "Data Transparency",
       openSourceDesc:
-        "The entire codebase is public on GitHub. Verify how data is collected, audit the AI prompts, or deploy your own instance.",
+        "A rigorous daily validation pipeline ensures high fidelity of data extraction. All ingested values are mathematically verified before serving to our models.",
       forDevelopers: "For Developers",
       techStack: "Tech Stack",
       backend: "Backend",
       frontend: "Frontend",
       aiMl: "AI / ML",
       infrastructure: "Infrastructure",
-      author: "Author",
+      author: "Team",
       authorBio:
-        "Built by Alex Monteiro to fill the gap between free government data APIs and expensive financial terminals.",
+        "Built by the Veredas team to provide institutional-quality macroeconomic intelligence without the terminal pricing.",
     },
     anomaly: {
       title: "Anomaly Analysis",
@@ -149,10 +149,10 @@ export const translations = {
       step3Title: "Fique informado",
       step3Desc:
         "Insights diários gerados por IA e alertas semanais de anomalias. Nunca perca uma decisão do COPOM ou uma surpresa inflacionária.",
-      openSourceTitle: "Totalmente Open Source",
+      openSourceTitle: "Dados de Nível Institucional",
       openSourceDesc:
-        "Todo o código é público. Verifique o pipeline de dados, audite os prompts de IA ou implante sua própria instância.",
-      viewOnGithub: "Ver no GitHub",
+        "Pipeline de validação rigoroso garante precisão e confiabilidade em milhares de pontos de dados diariamente.",
+      viewOnGithub: "Nossa Metodologia",
       footerLinks: "Links",
     },
     insight: {
@@ -215,18 +215,18 @@ export const translations = {
       whatIsDesc:
         "O Veredas coleta dados macroeconômicos de 8 fontes oficiais brasileiras — Banco Central, IBGE, Tesouro Nacional, FRED e mais — valida diariamente e torna consultável por IA. Faça uma pergunta em linguagem natural, receba uma resposta com fontes.",
       dataSources: "Fontes de Dados",
-      openSource: "Código Aberto",
+      openSource: "Transparência de Dados",
       openSourceDesc:
-        "Todo o código é público no GitHub. Verifique como os dados são coletados, audite os prompts de IA ou implante sua própria instância.",
+        "Um rigoroso pipeline de validação diária garante alta fidelidade na extração. Todos os valores são matematicamente verificados antes de serem servidos aos nossos modelos.",
       forDevelopers: "Para Desenvolvedores",
       techStack: "Stack Tecnológico",
       backend: "Backend",
       frontend: "Frontend",
       aiMl: "IA / ML",
       infrastructure: "Infraestrutura",
-      author: "Autor",
+      author: "Equipe",
       authorBio:
-        "Desenvolvido por Alex Monteiro para preencher a lacuna entre APIs públicas gratuitas e terminais financeiros caros.",
+        "Desenvolvido pela equipe Veredas para fornecer inteligência macroeconômica com qualidade institucional sem o preço de um terminal.",
     },
     anomaly: {
       title: "Análise de Anomalias",
