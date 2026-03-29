@@ -61,16 +61,6 @@ export function InsightDigest() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-            {insight.confidence_flag ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 font-semibold uppercase tracking-wider text-[10px]">
-                {t.insight.highConfidence}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 font-semibold uppercase tracking-wider text-[10px]">
-                {t.insight.lowConfidence}
-              </span>
-            )}
-
             <span>{formatTimestamp(insight.generated_at, locale)}</span>
 
             {insight.metric_refs.length > 0 && (

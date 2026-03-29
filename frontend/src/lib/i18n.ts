@@ -27,8 +27,6 @@ export const translations = {
       title: 'AI Insight Digest',
       noData: 'No insights yet. Daily summaries will show up here once data is processed.',
       poweredBy: 'Powered by',
-      highConfidence: 'High confidence',
-      lowConfidence: 'Low confidence',
       refs: 'Refs',
     },
     ask: {
@@ -129,8 +127,6 @@ export const translations = {
       title: 'Resumo de IA',
       noData: 'Ainda sem resumos. Os resumos diários aparecerão aqui quando os dados forem processados.',
       poweredBy: 'Gerado por',
-      highConfidence: 'Alta confiança',
-      lowConfidence: 'Baixa confiança',
       refs: 'Refs',
     },
     ask: {
