@@ -104,7 +104,7 @@ export const translations = {
       infrastructure: "Infrastructure",
       author: "Author",
       authorBio:
-        "Built to fill the gap between free government data APIs and expensive financial terminals.",
+        "Built by Alex Monteiro to fill the gap between free government data APIs and expensive financial terminals.",
     },
     anomaly: {
       title: "Anomaly Analysis",
@@ -226,7 +226,7 @@ export const translations = {
       infrastructure: "Infraestrutura",
       author: "Autor",
       authorBio:
-        "Desenvolvido para preencher a lacuna entre APIs públicas gratuitas e terminais financeiros caros.",
+        "Desenvolvido por Alex Monteiro para preencher a lacuna entre APIs públicas gratuitas e terminais financeiros caros.",
     },
     anomaly: {
       title: "Análise de Anomalias",
