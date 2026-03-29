@@ -58,7 +58,9 @@ quality:
     min_row_count: 1
     value_range_min: 30.0
     value_range_max: 200.0
-
+    critical_checks:
+      - value_range
+      - typical_range
 metadata:
   unit: "Index"
   tags:

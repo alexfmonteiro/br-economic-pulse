@@ -10,7 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from api.models import FeedConfig, PipelineStage
+from api.models import FeedConfig, GoldSummary, PipelineStage
 from pipeline.feed_config import load_feed_configs
 from storage.local import LocalStorageBackend
 from tasks.quality.task import QualityTask
@@ -252,8 +252,10 @@ async def test_quality_gold_value_range(tmp_path: Path) -> None:
     report_data = await storage.read(sorted(keys)[-1])
     report = json.loads(report_data)
     range_checks = [c for c in report["checks"] if "value_range" in c["check_name"]]
-    assert len(range_checks) == 1
-    assert not range_checks[0]["passed"]
+    # WARNING check (all data) + CRITICAL check (recent data, from critical_checks config)
+    assert len(range_checks) == 2
+    assert not range_checks[0]["passed"]  # WARNING: all-data check
+    assert not range_checks[1]["passed"]  # CRITICAL: recent-data check
 
 
 @pytest.mark.asyncio()
@@ -369,3 +371,245 @@ async def test_quality_gold_typical_range_allows_historical_extremes(
     assert len(tr_checks) == 1
     # Should pass — only recent values (2026) are checked, and those are within range
     assert tr_checks[0]["passed"]
+
+
+# ---------------------------------------------------------------------------
+# Layer 1: critical_checks tests
+# ---------------------------------------------------------------------------
+
+def _make_gold_columns(
+    dates: list[str], values: list[float]
+) -> dict[str, object]:
+    """Build a minimal gold table dict."""
+    n = len(dates)
+    return {
+        "date": pa.array([dt.date.fromisoformat(d) for d in dates], type=pa.date32()),
+        "value": pa.array(values, type=pa.float64()),
+        "series": ["test_series"] * n,
+        "unit": ["%"] * n,
+        "last_updated_at": [dt.datetime.now(dt.timezone.utc).isoformat()] * n,
+        "calculation_version": ["1.0.0"] * n,
+        "mom_delta": [None] * n,
+        "yoy_delta": [None] * n,
+        "rolling_12m_avg": [None] * n,
+        "z_score": [None] * n,
+    }
+
+
+@pytest.mark.asyncio()
+async def test_critical_value_range_halts_pipeline(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """Recent out-of-range values with critical_checks should halt the pipeline."""
+    # bcb_selic has value_range [0, 50] and critical_checks: [value_range, typical_range]
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2026-01-01", "2026-02-01", "2026-03-01"],
+        values=[14.75, 14.75, 999.0],  # 999 is way out of range
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    assert result.success is False
+    assert any("outside value_range" in e for e in result.errors)
+
+
+@pytest.mark.asyncio()
+async def test_critical_value_range_allows_historical(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """Out-of-range values older than 24 months should NOT trigger critical check."""
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2020-01-01", "2020-02-01"],  # >24 months ago
+        values=[999.0, 888.0],  # Out of range but old
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    # Pipeline should succeed — critical check only applies to recent data
+    assert result.success is True
+
+
+@pytest.mark.asyncio()
+async def test_no_critical_checks_is_warning_only(
+    tmp_path: Path,
+) -> None:
+    """Without critical_checks configured, out-of-range is WARNING only."""
+    from api.models import (
+        FeedMetadataConfig,
+        FeedProcessingConfig,
+        FeedQualityConfig,
+        FeedSourceConfig,
+        FeedStatus,
+        QualityRuleConfig,
+        SourceFormat,
+    )
+
+    feed = FeedConfig(
+        feed_id="test_feed",
+        name="Test Feed",
+        version="1.0.0",
+        status=FeedStatus.ACTIVE,
+        source=FeedSourceConfig(type="api", url="http://example.com", format=SourceFormat.JSON),
+        processing=FeedProcessingConfig(),
+        quality=FeedQualityConfig(
+            gold=QualityRuleConfig(
+                value_range_min=0.0,
+                value_range_max=100.0,
+                # No critical_checks configured
+            )
+        ),
+        metadata=FeedMetadataConfig(unit="%"),
+    )
+
+    _write_parquet(tmp_path, "gold/test_feed.parquet", _make_gold_columns(
+        dates=["2026-01-01"],
+        values=[999.0],  # Out of range
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"test_feed": feed},
+    )
+    result = await task.run()
+    # Should succeed (WARNING only, not CRITICAL)
+    assert result.success is True
+    assert len(result.warnings) > 0
+
+
+# ---------------------------------------------------------------------------
+# Layer 2: cross-run comparison tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio()
+async def test_cross_run_catches_3x_value_jump(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """A 3x jump in max value should trigger critical_max_value_jump."""
+    # Write previous summary with normal values
+    prev_summary = GoldSummary(
+        series_id="bcb_selic",
+        row_count=2,  # Match current gold row count
+        value_min=0.5,
+        value_max=14.75,
+        value_mean=10.0,
+        latest_date="2026-01-01",
+        computed_at=dt.datetime.now(dt.timezone.utc),
+    )
+    summary_path = tmp_path / "gold" / "bcb_selic.summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(prev_summary.model_dump_json())
+
+    # Write gold with 3x inflated values
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2026-01-01", "2026-02-01"],
+        values=[10.0, 44.25],  # max=44.25, prev_max=14.75 -> 200% change
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    assert result.success is False
+    assert any("max value changed" in e for e in result.errors)
+
+
+@pytest.mark.asyncio()
+async def test_cross_run_no_previous_summary(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """First run (no previous summary) should pass without errors."""
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2026-01-01"],
+        values=[14.75],
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    assert result.success is True
+
+
+@pytest.mark.asyncio()
+async def test_cross_run_normal_change_passes(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """A <50% change in max value should pass."""
+    prev_summary = GoldSummary(
+        series_id="bcb_selic",
+        row_count=2,  # Match current gold row count to avoid row_count_drop
+        value_min=0.5,
+        value_max=14.75,
+        value_mean=10.0,
+        latest_date="2026-01-01",
+        computed_at=dt.datetime.now(dt.timezone.utc),
+    )
+    summary_path = tmp_path / "gold" / "bcb_selic.summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(prev_summary.model_dump_json())
+
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2026-01-01", "2026-02-01"],
+        values=[10.0, 15.0],  # max=15.0, prev_max=14.75 -> ~2% change
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    assert result.success is True
+
+
+@pytest.mark.asyncio()
+async def test_cross_run_row_count_drop(
+    tmp_path: Path,
+    feed_configs: dict[str, FeedConfig],
+) -> None:
+    """Row count dropping >20% should trigger critical_row_count_drop."""
+    prev_summary = GoldSummary(
+        series_id="bcb_selic",
+        row_count=1000,
+        value_min=0.5,
+        value_max=14.75,
+        value_mean=10.0,
+        latest_date="2026-01-01",
+        computed_at=dt.datetime.now(dt.timezone.utc),
+    )
+    summary_path = tmp_path / "gold" / "bcb_selic.summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(prev_summary.model_dump_json())
+
+    # Only 2 rows vs previous 1000 -> 99.8% drop
+    _write_parquet(tmp_path, "gold/bcb_selic.parquet", _make_gold_columns(
+        dates=["2026-01-01", "2026-02-01"],
+        values=[10.0, 14.75],
+    ))
+    storage = LocalStorageBackend(tmp_path)
+    task = QualityTask(
+        storage=storage,
+        stage=PipelineStage.POST_TRANSFORMATION,
+        feed_configs={"bcb_selic": feed_configs["bcb_selic"]},
+    )
+    result = await task.run()
+    assert result.success is False
+    assert any("row count dropped" in e for e in result.errors)

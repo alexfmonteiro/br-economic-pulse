@@ -116,6 +116,20 @@ class QualityReport(BaseModel):
     critical_failures: list[str] = Field(default_factory=list)
 
 
+class GoldSummary(BaseModel):
+    """Lightweight snapshot of gold data stats for cross-run comparison."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    series_id: str
+    row_count: int
+    value_min: float | None = None
+    value_max: float | None = None
+    value_mean: float | None = None
+    latest_date: str | None = None
+    computed_at: datetime
+
+
 class QualityLatestResponse(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
 
@@ -337,6 +351,7 @@ class QualityRuleConfig(BaseModel):
     value_range_min: float | None = None
     value_range_max: float | None = None
     freshness_hours: float | None = None
+    critical_checks: list[str] = Field(default_factory=list)
 
 
 class FeedQualityConfig(BaseModel):

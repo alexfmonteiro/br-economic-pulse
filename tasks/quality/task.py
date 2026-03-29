@@ -12,6 +12,7 @@ import structlog
 
 from api.models import (
     FeedConfig,
+    GoldSummary,
     PipelineStage,
     QualityCheckResult,
     QualityLevel,
@@ -57,13 +58,19 @@ class QualityTask(BaseTask):
 
     def _get_gold_thresholds(
         self, series: str
-    ) -> tuple[float, int, float | None, float | None]:
+    ) -> tuple[float, int, float | None, float | None, list[str]]:
         """Get gold quality thresholds for a series."""
         feed = self._feed_configs.get(series)
         if feed and feed.quality.gold:
             q = feed.quality.gold
-            return q.max_null_rate, q.min_row_count, q.value_range_min, q.value_range_max
-        return DEFAULT_MAX_NULL_RATE, DEFAULT_MIN_ROW_COUNT, None, None
+            return (
+                q.max_null_rate,
+                q.min_row_count,
+                q.value_range_min,
+                q.value_range_max,
+                q.critical_checks,
+            )
+        return DEFAULT_MAX_NULL_RATE, DEFAULT_MIN_ROW_COUNT, None, None, []
 
     async def _execute(self) -> TaskResult:
         run_id = f"quality-{uuid.uuid4().hex[:8]}"
@@ -294,7 +301,7 @@ class QualityTask(BaseTask):
                 continue
 
             series_name = key.split("/")[-1].replace(".parquet", "")
-            max_null_rate, min_row_count, val_min, val_max = (
+            max_null_rate, min_row_count, val_min, val_max, critical_checks = (
                 self._get_gold_thresholds(series_name)
             )
 
@@ -341,11 +348,12 @@ class QualityTask(BaseTask):
                 )
             )
 
-            # Value range check (DuckDB pushdown)
-            if (
+            # Value range check (DuckDB pushdown) — WARNING for all data
+            has_range = (
                 "value" in table.column_names
                 and (val_min is not None or val_max is not None)
-            ):
+            )
+            if has_range:
                 conditions: list[str] = []
                 if val_min is not None:
                     conditions.append(f"value < {val_min}")
@@ -379,18 +387,50 @@ class QualityTask(BaseTask):
                         )
                     )
 
+            # CRITICAL value_range check — recent data only (24 months)
+            # Halts the pipeline if recent values violate the range.
+            if has_range and "date" in table.column_names and "value_range" in critical_checks:
+                conn = duckdb.connect()
+                conn.register("_vrc", table)
+                vrc_result = conn.execute(
+                    "SELECT "
+                    "  COUNT(*) FILTER (WHERE value IS NOT NULL) AS total, "
+                    "  COUNT(*) FILTER (WHERE value IS NOT NULL AND "
+                    f"    ({where})) AS oor "
+                    "FROM _vrc "
+                    "WHERE date >= CURRENT_DATE - INTERVAL '24 months'"
+                ).fetchone()
+                conn.close()
+                assert vrc_result is not None
+                vrc_total, vrc_oor = vrc_result
+
+                if vrc_total and vrc_total > 0 and vrc_oor > 0:
+                    checks.append(
+                        QualityCheckResult(
+                            check_name=f"critical_value_range_{series_name}",
+                            passed=False,
+                            metric_value=float(vrc_oor),
+                            message=(
+                                f"{series_name} has {vrc_oor}/{vrc_total} recent values "
+                                f"outside value_range [{val_min}, {val_max}]"
+                            ),
+                        )
+                    )
+
             # Typical-range check on recent data (last 24 months)
             # Uses domain config typical_range — tighter than feed-level
             # value_range, but only applied to recent data to allow
             # historical extremes.
             cfg = get_domain_config()
             series_cfg = cfg.series.get(series_name)
-            if (
+            has_typical = (
                 series_cfg
                 and series_cfg.typical_range
                 and "value" in table.column_names
                 and "date" in table.column_names
-            ):
+            )
+            if has_typical:
+                assert series_cfg is not None and series_cfg.typical_range is not None
                 tr = series_cfg.typical_range
                 conn = duckdb.connect()
                 conn.register("_tr", table)
@@ -407,9 +447,14 @@ class QualityTask(BaseTask):
                 tr_total, tr_oor = tr_result
 
                 if tr_total and tr_total > 0:
+                    # WARNING-level check (existing behavior)
+                    check_name = f"typical_range_{series_name}"
+                    # Promote to CRITICAL if configured
+                    if "typical_range" in critical_checks and tr_oor > 0:
+                        check_name = f"critical_typical_range_{series_name}"
                     checks.append(
                         QualityCheckResult(
-                            check_name=f"typical_range_{series_name}",
+                            check_name=check_name,
                             passed=tr_oor == 0,
                             metric_value=float(tr_oor),
                             message=(
@@ -420,6 +465,96 @@ class QualityTask(BaseTask):
                             ),
                         )
                     )
+
+            # Cross-run comparison: detect value drift vs previous gold
+            cross_run_checks = await self._compare_with_previous(
+                series_name, table
+            )
+            checks.extend(cross_run_checks)
+
+        return checks
+
+    async def _compare_with_previous(
+        self, series_name: str, current_table: pq.ParquetFile | object
+    ) -> list[QualityCheckResult]:
+        """Compare current gold data against previous run's summary."""
+        checks: list[QualityCheckResult] = []
+        summary_key = f"gold/{series_name}.summary.json"
+
+        if not await self._storage.exists(summary_key):
+            return checks
+
+        try:
+            prev_data = await self._storage.read(summary_key)
+            prev = GoldSummary.model_validate_json(prev_data)
+        except Exception:
+            return checks
+
+        conn = duckdb.connect()
+        conn.register("_curr", current_table)
+        result = conn.execute(
+            "SELECT COUNT(*), MIN(value), MAX(value), AVG(value) "
+            "FROM _curr WHERE value IS NOT NULL"
+        ).fetchone()
+        conn.close()
+        assert result is not None
+        curr_count, curr_min, curr_max, curr_mean = result
+
+        # Row count drop > 20%
+        if prev.row_count > 0 and curr_count is not None:
+            drop_pct = (prev.row_count - curr_count) / prev.row_count
+            if drop_pct > 0.20:
+                checks.append(
+                    QualityCheckResult(
+                        check_name=f"critical_row_count_drop_{series_name}",
+                        passed=False,
+                        metric_value=round(drop_pct * 100, 1),
+                        message=(
+                            f"{series_name} row count dropped {drop_pct:.0%}: "
+                            f"{prev.row_count} -> {curr_count}"
+                        ),
+                    )
+                )
+
+        # Max value jump > 50%
+        if (
+            prev.value_max is not None
+            and prev.value_max != 0
+            and curr_max is not None
+        ):
+            max_change = abs(curr_max - prev.value_max) / abs(prev.value_max)
+            if max_change > 0.50:
+                checks.append(
+                    QualityCheckResult(
+                        check_name=f"critical_max_value_jump_{series_name}",
+                        passed=False,
+                        metric_value=round(max_change * 100, 1),
+                        message=(
+                            f"{series_name} max value changed {max_change:.0%}: "
+                            f"{prev.value_max:.2f} -> {curr_max:.2f}"
+                        ),
+                    )
+                )
+
+        # Mean shift > 100%
+        if (
+            prev.value_mean is not None
+            and prev.value_mean != 0
+            and curr_mean is not None
+        ):
+            mean_change = abs(curr_mean - prev.value_mean) / abs(prev.value_mean)
+            if mean_change > 1.0:
+                checks.append(
+                    QualityCheckResult(
+                        check_name=f"critical_mean_shift_{series_name}",
+                        passed=False,
+                        metric_value=round(mean_change * 100, 1),
+                        message=(
+                            f"{series_name} mean shifted {mean_change:.0%}: "
+                            f"{prev.value_mean:.2f} -> {curr_mean:.2f}"
+                        ),
+                    )
+                )
 
         return checks
 

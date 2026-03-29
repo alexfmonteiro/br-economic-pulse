@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import duckdb
 import structlog
 
-from api.models import FeedConfig, SeriesReconciliation, SilverProcessingType, SilverWatermark, TaskResult
+from api.models import FeedConfig, GoldSummary, SeriesReconciliation, SilverProcessingType, SilverWatermark, TaskResult
 from storage.protocol import StorageBackend
 from tasks.base import BaseTask
 
@@ -154,6 +154,30 @@ class TransformationTask(BaseTask):
         with open(file_path, "rb") as f:
             await self._storage.write(key, f.read())
 
+    async def _write_gold_summary(
+        self, conn: duckdb.DuckDBPyConnection, gold_path: str, series: str
+    ) -> None:
+        """Write a lightweight gold summary for cross-run comparison."""
+        result = conn.execute(
+            f"SELECT COUNT(*), MIN(value), MAX(value), AVG(value), "
+            f"MAX(date)::VARCHAR "
+            f"FROM read_parquet('{gold_path}') WHERE value IS NOT NULL"
+        ).fetchone()
+        assert result is not None
+        summary = GoldSummary(
+            series_id=series,
+            row_count=result[0],
+            value_min=float(result[1]) if result[1] is not None else None,
+            value_max=float(result[2]) if result[2] is not None else None,
+            value_mean=float(result[3]) if result[3] is not None else None,
+            latest_date=result[4],
+            computed_at=datetime.now(timezone.utc),
+        )
+        await self._storage.write(
+            f"gold/{series}.summary.json",
+            summary.model_dump_json().encode(),
+        )
+
     def _build_silver_sql(self, feed: FeedConfig, has_ingested_at: bool = True) -> str:
         """Generate silver SQL from feed config field definitions."""
         select_parts: list[str] = []
@@ -283,6 +307,7 @@ class TransformationTask(BaseTask):
             gold_path = os.path.join(temp_dir, "gold.parquet")
             self._compute_gold(conn, silver_path, gold_path, feed)
             await self._upload_from_temp(gold_path, f"gold/{series}.parquet")
+            await self._write_gold_summary(conn, gold_path, series)
         finally:
             conn.close()
 
@@ -389,6 +414,9 @@ class TransformationTask(BaseTask):
             gold_path = os.path.join(temp_dir, "gold.parquet")
             self._compute_gold(conn, merged_path, gold_path, feed)
             await self._upload_from_temp(gold_path, f"gold/{series}.parquet")
+
+            # Write gold summary for cross-run comparison
+            await self._write_gold_summary(conn, gold_path, series)
 
             result = conn.execute(
                 f"SELECT COUNT(*) FROM read_parquet('{merged_path}')"
