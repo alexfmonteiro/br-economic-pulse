@@ -45,7 +45,7 @@ export function Dashboard() {
               )}
             </div>
             <p className="text-sm text-slate-500">
-              {localize(cfg.landing.hero_title, language)}
+              {localize(cfg.app.meta_description, language)}
             </p>
           </div>
 

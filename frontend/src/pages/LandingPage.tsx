@@ -55,17 +55,6 @@ const icons: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
     </svg>
   ),
-  database: (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-    </svg>
-  ),
-  eye: (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  ),
 };
 
 export function LandingPage() {
@@ -77,21 +66,30 @@ export function LandingPage() {
     <div className="min-h-[calc(100vh-3.5rem)]">
       {/* Hero */}
       <section className="px-4 sm:px-6 lg:px-8 pt-16 pb-20 max-w-7xl mx-auto text-center">
+        <img src="/veredas_logo.png" alt="Veredas" className="h-16 w-16 mx-auto mb-6 rounded-xl" />
         <h1 className="text-4xl sm:text-5xl font-bold text-slate-100 tracking-tight mb-4">
           {l(cfg.landing.hero_title)}
         </h1>
         <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8 leading-relaxed">
           {l(cfg.landing.hero_subtitle)}
         </p>
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-500 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-        >
-          {t.landing.cta}
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+        <div className="flex items-center justify-center gap-3">
+          <Link
+            to="/ask"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-500 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+          >
+            {t.landing.ctaPrimary}
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/50 px-6 py-3 text-sm font-medium text-slate-300 hover:text-slate-100 hover:border-slate-600/50 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+          >
+            {t.landing.ctaSecondary}
+          </Link>
+        </div>
       </section>
 
       {/* Features Grid */}
@@ -99,7 +97,7 @@ export function LandingPage() {
         <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider text-center mb-8">
           {t.landing.featuresTitle}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {cfg.landing.features.map((f, i) => (
             <FeatureCard
               key={i}
@@ -107,18 +105,6 @@ export function LandingPage() {
               description={l(f.description)}
               icon={icons[f.icon] ?? icons.chart}
             />
-          ))}
-        </div>
-      </section>
-
-      {/* Data Sources */}
-      <section className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto">
-        <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider text-center mb-8">
-          {t.landing.dataSourcesTitle}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {cfg.data_sources.map((ds) => (
-            <DataSourceBadge key={ds.id} name={ds.name} description={l(ds.description)} />
           ))}
         </div>
       </section>
@@ -132,6 +118,18 @@ export function LandingPage() {
           <StepCard number={1} title={t.landing.step1Title} description={t.landing.step1Desc} />
           <StepCard number={2} title={t.landing.step2Title} description={t.landing.step2Desc} />
           <StepCard number={3} title={t.landing.step3Title} description={t.landing.step3Desc} />
+        </div>
+      </section>
+
+      {/* Data Sources */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 max-w-7xl mx-auto">
+        <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider text-center mb-8">
+          {t.landing.dataSourcesTitle}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {cfg.data_sources.map((ds) => (
+            <DataSourceBadge key={ds.id} name={ds.name} description={l(ds.description)} />
+          ))}
         </div>
       </section>
 
@@ -160,8 +158,11 @@ export function LandingPage() {
           <span className="font-medium text-slate-400">{cfg.app.title}</span>
           <div className="flex items-center gap-4">
             <Link to="/about" className="hover:text-slate-300 transition-colors">{t.nav.about}</Link>
+            <Link to="/ask" className="hover:text-slate-300 transition-colors">{t.nav.askAi}</Link>
             <Link to="/dashboard" className="hover:text-slate-300 transition-colors">{t.nav.dashboard}</Link>
-            <Link to="/quality" className="hover:text-slate-300 transition-colors">{t.nav.quality}</Link>
+            <Link to="/quality" className="hover:text-slate-300 transition-colors">
+              {language === 'pt' ? 'Qualidade dos Dados' : 'Data Quality'}
+            </Link>
             <a
               href={cfg.app.github_url}
               target="_blank"

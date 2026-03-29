@@ -52,17 +52,17 @@ function NavBar() {
   return (
     <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 gap-1">
-        <NavLink to="/" className="text-lg font-bold text-slate-100 mr-4 shrink-0 whitespace-nowrap">
-          {cfg.app.title}
+        <NavLink to="/" className="flex items-center gap-2 mr-4 shrink-0 whitespace-nowrap">
+          <img src="/veredas_logo.png" alt="" className="h-7 w-7 rounded" />
+          <span className="text-lg font-bold text-slate-100">{cfg.app.title}</span>
         </NavLink>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
           <NavLink to="/" end className={linkClass}>{t.nav.home}</NavLink>
+          <NavLink to="/ask" className={linkClass}>{t.nav.askAi}</NavLink>
           <NavLink to="/dashboard" end className={linkClass}>{t.nav.dashboard}</NavLink>
           <NavLink to="/analytics" className={linkClass}>{t.nav.analytics}</NavLink>
-          <NavLink to="/ask" className={linkClass}>{t.nav.askAi}</NavLink>
-          <NavLink to="/quality" className={linkClass}>{t.nav.quality}</NavLink>
           <NavLink to="/about" className={linkClass}>{t.nav.about}</NavLink>
         </div>
 
@@ -89,10 +89,9 @@ function NavBar() {
       {open && (
         <div className="md:hidden border-t border-slate-800 px-4 py-2 space-y-1 bg-slate-900/95 backdrop-blur-sm">
           <NavLink to="/" end className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.home}</NavLink>
+          <NavLink to="/ask" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.askAi}</NavLink>
           <NavLink to="/dashboard" end className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.dashboard}</NavLink>
           <NavLink to="/analytics" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.analytics}</NavLink>
-          <NavLink to="/ask" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.askAi}</NavLink>
-          <NavLink to="/quality" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.quality}</NavLink>
           <NavLink to="/about" className={mobileLinkClass} onClick={() => setOpen(false)}>{t.nav.about}</NavLink>
         </div>
       )}

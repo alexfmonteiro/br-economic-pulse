@@ -40,9 +40,14 @@ async def generate_summary() -> str:
 
     report: QualityReport | None = None
     if report_keys:
-        latest_key = report_keys[-1]
-        data = await storage.read(latest_key)
-        report = QualityReport.model_validate_json(data)
+        # Find the most recent report by timestamp (keys are random hex UUIDs)
+        latest_report: QualityReport | None = None
+        for key in report_keys:
+            data = await storage.read(key)
+            r = QualityReport.model_validate_json(data)
+            if latest_report is None or r.timestamp > latest_report.timestamp:
+                latest_report = r
+        report = latest_report
 
     # --- Gold summaries ---
     gold_keys = await storage.list_keys("gold/")

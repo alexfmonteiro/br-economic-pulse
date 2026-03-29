@@ -1,142 +1,31 @@
+import { useState } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useDomain, localize } from '@/lib/domain';
 
 export function AboutPage() {
   const { language, t } = useLanguage();
   const cfg = useDomain();
+  const [showDevDetails, setShowDevDetails] = useState(false);
 
   const aboutTitle = language === 'pt'
     ? `Sobre o ${cfg.app.title}`
     : `About ${cfg.app.title}`;
 
-  const aboutSubtitle = localize(cfg.app.meta_description, language);
-
   return (
     <div className="min-h-[calc(100vh-3.5rem)] p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-slate-100">{aboutTitle}</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          {aboutSubtitle}
-        </p>
       </header>
 
       <div className="space-y-8">
-        {/* Architecture Diagram */}
-        <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-6">
-            {t.about.architecture}
-          </h2>
-
-          {/* Flow diagram */}
-          <div className="flex flex-col gap-6">
-            {/* Main pipeline row */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-stretch">
-              {/* Data Sources */}
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Data Sources</p>
-                <div className="flex flex-col gap-2">
-                  {cfg.data_sources.map((ds) => (
-                    <span key={ds.id} className="inline-flex items-center rounded-md bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 text-xs text-blue-400">{ds.name}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Medallion Pipeline */}
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Medallion Pipeline</p>
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="rounded bg-amber-500/15 border border-amber-500/25 px-2 py-1 text-amber-400">Bronze</span>
-                  <span className="text-slate-600">&rarr;</span>
-                  <span className="rounded bg-slate-500/15 border border-slate-500/25 px-2 py-1 text-slate-300">Silver</span>
-                  <span className="text-slate-600">&rarr;</span>
-                  <span className="rounded bg-yellow-500/15 border border-yellow-500/25 px-2 py-1 text-yellow-400">Gold</span>
-                </div>
-                <p className="text-[10px] text-slate-600 mt-2">raw &rarr; clean &rarr; aggregated</p>
-                <p className="text-[10px] text-slate-600 mt-1">Stored on Cloudflare R2</p>
-              </div>
-
-              {/* API Layer */}
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">API Layer</p>
-                <div className="flex flex-col gap-2">
-                  <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs text-emerald-400">FastAPI</span>
-                  <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs text-emerald-400">DuckDB</span>
-                </div>
-              </div>
-
-              {/* Frontend */}
-              <div className="rounded-lg border border-slate-700/50 bg-slate-900/60 p-4">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-3">Frontend</p>
-                <div className="flex flex-col gap-2">
-                  <span className="inline-flex items-center rounded-md bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 text-xs text-cyan-400">React + Vite</span>
-                  <span className="inline-flex items-center rounded-md bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 text-xs text-cyan-400">Recharts</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Supporting services */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Quality</p>
-                <p className="text-xs text-slate-400">Null rates, ranges, freshness</p>
-              </div>
-              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">AI Agents</p>
-                <p className="text-xs text-slate-400">Claude Sonnet &mdash; insights + queries</p>
-              </div>
-              <div className="rounded-lg border border-dashed border-slate-700/50 bg-slate-900/30 px-4 py-3 text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Infra</p>
-                <p className="text-xs text-slate-400">R2 storage, GitHub Actions, Terraform</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Tech Stack */}
+        {/* What is Veredas */}
         <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
           <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
-            {t.about.techStack}
+            {t.about.whatIsTitle}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.backend}</h3>
-              <ul className="space-y-1.5 text-sm text-slate-300">
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Python 3.12 with strict typing</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />FastAPI with async/await</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />DuckDB for analytical queries</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Pydantic v2 for data validation</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />structlog for structured logging</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.frontend}</h3>
-              <ul className="space-y-1.5 text-sm text-slate-300">
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />React 19 with TypeScript</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Vite for build tooling</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />TailwindCSS v4 (dark theme)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Recharts for data visualization</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />TanStack Query for data fetching</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.aiMl}</h3>
-              <ul className="space-y-1.5 text-sm text-slate-300">
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Claude Sonnet (Anthropic API)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Tiered query routing (Tier 1 regex + Tier 3 LLM)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Daily AI-generated insight digests</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />XML data fencing for prompt safety</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.infrastructure}</h3>
-              <ul className="space-y-1.5 text-sm text-slate-300">
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Cloudflare R2 (object storage)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Terraform (IaC)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />GitHub Actions (CI/CD)</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Medallion architecture (Bronze/Silver/Gold)</li>
-              </ul>
-            </div>
-          </div>
+          <p className="text-sm text-slate-300 leading-relaxed">
+            {t.about.whatIsDesc}
+          </p>
         </section>
 
         {/* Data Sources */}
@@ -166,19 +55,93 @@ export function AboutPage() {
           </div>
         </section>
 
+        {/* Open Source */}
+        <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
+          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+            {t.about.openSource}
+          </h2>
+          <p className="text-sm text-slate-300 leading-relaxed mb-4">
+            {t.about.openSourceDesc}
+          </p>
+          <a
+            href={cfg.app.github_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            GitHub
+          </a>
+        </section>
+
+        {/* For Developers (collapsible) */}
+        <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
+          <button
+            onClick={() => setShowDevDetails(!showDevDetails)}
+            className="cursor-pointer flex items-center gap-2 w-full text-left"
+          >
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              {t.about.forDevelopers}
+            </h2>
+            <svg
+              className={`h-4 w-4 text-slate-400 transition-transform ${showDevDetails ? 'rotate-90' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+
+          {showDevDetails && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.backend}</h3>
+                <ul className="space-y-1.5 text-sm text-slate-300">
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Python 3.12 with strict typing</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />FastAPI with async/await</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />DuckDB for analytical queries</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.frontend}</h3>
+                <ul className="space-y-1.5 text-sm text-slate-300">
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />React 19 with TypeScript</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />TailwindCSS v4</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Recharts for data visualization</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.aiMl}</h3>
+                <ul className="space-y-1.5 text-sm text-slate-300">
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Claude Sonnet (Anthropic API)</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Tiered query routing</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Daily AI-generated insights</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{t.about.infrastructure}</h3>
+                <ul className="space-y-1.5 text-sm text-slate-300">
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Cloudflare R2 (object storage)</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />GitHub Actions (CI/CD)</li>
+                  <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand-500" />Medallion architecture</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </section>
+
         {/* Author */}
         <section className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6">
           <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
             {t.about.author}
           </h2>
-          <div>
-            <p className="text-sm text-slate-300">
-              {t.about.authorBio}
-            </p>
-            <p className="text-xs text-slate-500 mt-3">
-              {t.about.authorArch}
-            </p>
-          </div>
+          <p className="text-sm text-slate-300">
+            {t.about.authorBio}
+          </p>
         </section>
       </div>
     </div>

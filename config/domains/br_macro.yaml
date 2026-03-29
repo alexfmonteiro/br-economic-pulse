@@ -181,8 +181,8 @@ series:
     domain: output
     chart_granularity: month
     typical_range:
-      min: 100.0
-      max: 1500.0
+      min: 700000.0
+      max: 1500000.0
     description:
       en: "GDP monthly proxy (BCB series 4380) in R$ billions, current prices. Broadest measure of economic output."
       pt: "Valor total de bens e serviços produzidos no Brasil, em bilhões de reais. É a medida mais ampla da atividade econômica."
@@ -199,10 +199,10 @@ series:
     domain: activity
     chart_granularity: month
     typical_range:
-      min: -15.0
-      max: 15.0
+      min: 60.0
+      max: 150.0
     description:
-      en: "Industrial production (PIM-PF) month-over-month change, seasonally adjusted. Industry is ~25% of GDP."
+      en: "Industrial production (PIM-PF) index, seasonally adjusted (base=100). Industry is ~25% of GDP."
       pt: "Produção industrial (PIM-PF) variação mês a mês, dessazonalizada. Indústria representa ~25% do PIB."
     keywords: ["produção industrial", "industrial production", "pim", "pim-pf"]
 
@@ -376,7 +376,7 @@ series:
     chart_granularity: month
     typical_range:
       min: -1.0
-      max: 3.0
+      max: 8.0
     description:
       en: "IPCA-15 monthly preview, released ~1 week before official IPCA. Markets move on this as the inflation preview."
       pt: "Prévia mensal do IPCA, divulgada ~1 semana antes do IPCA oficial. Mercados reagem a este indicador como prévia da inflação."
@@ -447,8 +447,8 @@ series:
     domain: credit
     chart_granularity: month
     typical_range:
-      min: 5.0
-      max: 80.0
+      min: 3000000.0
+      max: 10000000.0
     description:
       en: "Average lending rate for new credit operations (total). Shows the actual cost of borrowing in Brazil."
       pt: "Taxa média de juros das novas concessões de crédito (total). Mostra o custo real do crédito no Brasil."
@@ -607,7 +607,7 @@ series:
     domain: sentiment
     chart_granularity: month
     typical_range:
-      min: 50.0
+      min: 40.0
       max: 150.0
     description:
       en: "Industry confidence index (ICI/FGV). Leading indicator for industrial production and investment."
@@ -625,8 +625,8 @@ series:
     domain: monetary
     chart_granularity: month
     typical_range:
-      min: 100000.0
-      max: 1500000.0
+      min: 400000000.0
+      max: 900000000.0
     description:
       en: "M1 money supply (currency in circulation + demand deposits). Narrow money — most liquid monetary aggregate."
       pt: "Oferta monetária M1 (papel-moeda + depósitos à vista). Agregado monetário mais restrito e líquido."
@@ -643,8 +643,8 @@ series:
     domain: monetary
     chart_granularity: month
     typical_range:
-      min: 1000000.0
-      max: 10000000.0
+      min: 4000000000.0
+      max: 10000000000.0
     description:
       en: "M2 money supply (M1 + savings deposits + time deposits). Broad money indicator — tracks overall liquidity in the economy."
       pt: "Oferta monetária M2 (M1 + poupança + depósitos a prazo). Indicador de liquidez ampla — mede a liquidez total na economia."
@@ -955,57 +955,43 @@ app:
   title: "Veredas"
   session_cookie_name: "veredas_session"
   meta_description:
-    en: "Data intelligence platform"
-    pt: "Plataforma de inteligência de dados"
+    en: "AI-powered Brazilian macroeconomic data — SELIC, IPCA, USD/BRL, GDP and 44 more indicators from official sources"
+    pt: "Dados macroeconômicos brasileiros com IA — SELIC, IPCA, USD/BRL, PIB e mais 44 indicadores de fontes oficiais"
   github_url: "https://github.com/alexmonteiro/veredas"
 
 landing:
   hero_title:
-    en: "Enterprise Macro Intelligence Engine"
-    pt: "Motor de Inteligência Macro para Instituições"
+    en: "Ask anything about Brazil's economy"
+    pt: "Pergunte qualquer coisa sobre a economia do Brasil"
   hero_subtitle:
-    en: "Your dedicated AI analyst for Brazilian macroeconomic data. Real-time data aggregation, tiered AI reasoning, and quantitative accuracy for asset managers and research firms."
-    pt: "Seu analista dedicado de IA para dados macroeconômicos. Agregação em tempo real, raciocínio de IA em camadas e precisão quantitativa para gestoras e research."
+    en: "48 economic indicators from 8 official sources — Banco Central, IBGE, Tesouro Nacional and more — analyzed by AI in plain language. Free to explore."
+    pt: "48 indicadores econômicos de 8 fontes oficiais — Banco Central, IBGE, Tesouro Nacional e mais — analisados por IA em linguagem natural. Explore gratuitamente."
   features:
     - icon: ai
       title:
-        en: "AI Analyst Co-pilot"
-        pt: "Analista de IA Dedicado"
+        en: "Ask in Plain Language"
+        pt: "Pergunte em Linguagem Natural"
       description:
-        en: "Query complex macroeconomic relationships in natural language. The engine combines exact quantitative lookups with advanced qualitative reasoning."
-        pt: "Consulte relações macroeconômicas complexas em linguagem natural. O motor combina buscas quantitativas exatas com raciocínio qualitativo avançado."
-    - icon: database
-      title:
-        en: "Resilient Data Pipeline"
-        pt: "Pipeline de Dados Resiliente"
-      description:
-        en: "Built on financial-grade infrastructure with automated daily ingestion, robust data quality validations, and deterministic query execution for exact math."
-        pt: "Construído sobre infraestrutura de nível financeiro com ingestão diária automática, robustas validações de qualidade e execução de queries determinísticas."
-    - icon: chart
-      title:
-        en: "Real-Time Central Bank & IBGE Data"
-        pt: "Dados em Tempo Real do BCB e IBGE"
-      description:
-        en: "Daily and monthly indicators spanning SELIC, IPCA, GDP proxy, and ONS load, directly sourced and cross-analyzed for early market signals."
-        pt: "Indicadores diários e mensais como SELIC, IPCA, proxy do PIB e carga do ONS, extraídos diretamente e analisados em conjunto para sinais precoces de mercado."
+        en: "\"What's the current SELIC rate?\" \"How has IPCA trended since 2023?\" Ask questions about Brazilian macro data and get cited, sourced answers."
+        pt: "\"Qual a SELIC atual?\" \"Como o IPCA evoluiu desde 2023?\" Pergunte sobre dados macro do Brasil e receba respostas com fontes citadas."
     - icon: alert
       title:
-        en: "Statistical Anomaly Alerts"
-        pt: "Alertas Estatísticos de Anomalias"
+        en: "Anomaly Detection"
+        pt: "Detecção de Anomalias"
       description:
-        en: "Automated event-driven anomaly detection flags statistical outliers (z-score > 2) and sends immediate AI-generated commentary to your team."
-        pt: "Detecção automatizada baseada em eventos que sinaliza outliers estatísticos (z-score > 2) e envia comentários gerados por IA para a sua equipe."
-    - icon: eye
+        en: "Automatic alerts when indicators move beyond statistical norms. AI-generated context explains what each move means for markets."
+        pt: "Alertas automáticos quando indicadores saem das normas estatísticas. IA gera contexto explicando o que cada movimento significa para os mercados."
+    - icon: chart
       title:
-        en: "Financial Pipeline Governance"
-        pt: "Governança de Dados Financeiros"
+        en: "48 Indicators, 8 Official Sources"
+        pt: "48 Indicadores, 8 Fontes Oficiais"
       description:
-        en: "Enterprise-grade observability into schema evolution, null rates, and freshness, ensuring ultimate trust in the analytical outputs."
-        pt: "Observabilidade de nível enterprise de evolução de schemas, taxas de valores nulos e frescor de dados, garantindo confiança absoluta nos outputs."
+        en: "SELIC, IPCA, USD/BRL, GDP, unemployment, industrial production, bond yields, commodity prices and more — updated daily from Banco Central, IBGE, Tesouro and FRED."
+        pt: "SELIC, IPCA, USD/BRL, PIB, desemprego, produção industrial, títulos públicos, commodities e mais — atualizados diariamente do Banco Central, IBGE, Tesouro e FRED."
     - icon: globe
       title:
-        en: "Bilingual by Default"
-        pt: "Bilíngue Nativamente"
+        en: "Open Source, Accessible Pricing"
+        pt: "Código Aberto, Preço Acessível"
       description:
-        en: "Full Portuguese and English support for global investment teams investigating Brazilian markets and emerging market trends."
-        pt: "Suporte completo em português e inglês para equipes de investimento globais investigando o mercado brasileiro."
+        en: "Fully open source, bilingual (PT/EN). The intelligence layer between free public APIs and R$170K/year terminals."
+        pt: "Totalmente open source, bilíngue (PT/EN). A camada de inteligência entre APIs públicas gratuitas e terminais de R$170 mil/ano."
