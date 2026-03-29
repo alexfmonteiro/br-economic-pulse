@@ -135,7 +135,7 @@ def test_app_config() -> None:
     config = load_domain_config("br_macro")
     assert config.app.title == "Veredas"
     assert config.app.session_cookie_name == "veredas_session"
-    assert "github.com" in config.app.github_url
+    assert "veredasdata.com" in config.app.github_url
 
 
 def test_landing_features_count() -> None:

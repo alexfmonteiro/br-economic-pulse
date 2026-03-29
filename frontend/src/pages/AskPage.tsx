@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { postQuery } from '@/lib/api';
+import { postQuery, fetchQueryUsage } from '@/lib/api';
 import type { QueryResponse } from '@/lib/api';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useDomain, localize } from '@/lib/domain';
@@ -128,6 +128,16 @@ export function AskPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    fetchQueryUsage()
+      .then((usage) => {
+        if (usage?.today?.queries !== undefined) {
+          setQuestionCount(usage.today.queries);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch query usage:', err));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
