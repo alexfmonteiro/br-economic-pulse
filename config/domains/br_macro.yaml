@@ -977,7 +977,7 @@ app:
   meta_description:
     en: "AI-powered Brazilian macroeconomic data — SELIC, IPCA, USD/BRL, GDP and 44 more indicators from official sources"
     pt: "Dados macroeconômicos brasileiros com IA — SELIC, IPCA, USD/BRL, PIB e mais 44 indicadores de fontes oficiais"
-  github_url: "https://veredas.finance"
+  github_url: "https://veredasdata.com"
 
 landing:
   hero_title:
